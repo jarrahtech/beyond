@@ -1,0 +1,25 @@
+name: Typescript Github Pages Publish
+
+on:
+  workflow_dispatch
+
+env:
+  GITHUB_TOKEN: ${{ secrets.TOKEN_WITH_READ_PACKAGES_SCOPE }}
+  
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: latest
+    - run: npm ci
+    - run: npm build
+    - run: npm deploy
