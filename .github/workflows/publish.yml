@@ -21,5 +21,5 @@ jobs:
       with:
         node-version: latest
     - run: npm ci
-    - run: npm build
-    - run: npm deploy
+    - run: npm run build
+    - run: npm run deploy
