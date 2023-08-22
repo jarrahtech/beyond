@@ -22,4 +22,8 @@ jobs:
         node-version: latest
     - run: npm ci
     - run: npm run build
-    - run: npm run deploy
+    #- run: npm run deploy
+    - uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.TOKEN_WITH_READ_PACKAGES_SCOPE }}
+        publish_dir: ./dist
