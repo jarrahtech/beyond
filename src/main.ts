@@ -18,10 +18,10 @@ let createScene = function() {
   let ctrls = new ControlManager();
   ctrls.add(Inputs.a, camCtrl.left);
   ctrls.attach(scene);
-  let light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
+  /* let light = */ new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
   let sphere = BABYLON.MeshBuilder.CreateSphere('sphere1', { segments: 16,  diameter: 2}, scene);
   sphere.position.y = 1;
-  let ground = BABYLON.MeshBuilder.CreateGround('ground1', { width: 6, height: 6, subdivisions: 2} , scene);
+  /* let ground = */ BABYLON.MeshBuilder.CreateGround('ground1', { width: 6, height: 6, subdivisions: 2} , scene);
   return { scene, camera };
 }
 
