@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "test": "jest",
-    "pages:build": "tsc && set BASE_URL=/beyond/ && vite build",
+    "pages:build": "set BASE_URL=/beyond/ && tsc && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {

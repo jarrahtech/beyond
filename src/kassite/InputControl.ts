@@ -19,26 +19,60 @@ export class Inputs {
   static fromWheel(ev: BABYLON.IMouseEvent) { return this.wheel(ev.altKey, ev.ctrlKey, ev.metaKey, ev.shiftKey); }
 
   static readonly a = this.keyboard("a");
+  static readonly b = this.keyboard("b");
+  static readonly c = this.keyboard("c");
+  static readonly d = this.keyboard("d");
+  static readonly e = this.keyboard("e");
+  static readonly f = this.keyboard("f");
+  static readonly g = this.keyboard("g");
+  static readonly h = this.keyboard("h");
+  static readonly i = this.keyboard("i");
+  static readonly j = this.keyboard("j");
+  static readonly k = this.keyboard("k");
+  static readonly l = this.keyboard("l");
+  static readonly m = this.keyboard("m");
+  static readonly n = this.keyboard("n");
+  static readonly o = this.keyboard("o");
+  static readonly p = this.keyboard("p");
+  static readonly q = this.keyboard("q");
+  static readonly r = this.keyboard("r");
+  static readonly s = this.keyboard("s");
+  static readonly t = this.keyboard("t");
+  static readonly u = this.keyboard("u");
+  static readonly v = this.keyboard("v");
+  static readonly w = this.keyboard("w");
+  static readonly x = this.keyboard("x");
+  static readonly y = this.keyboard("y");
+  static readonly z = this.keyboard("z");
 
   static readonly mouse0 = this.pointerButton(0);
   static readonly mouse1 = this.pointerButton(1);
   static readonly mouse2 = this.pointerButton(2);
   static readonly mousePosition = this.pointerPosition();
   static readonly mouseWheel = this.wheel();
+
+  static readonly arrowLeft = this.keyboard("ArrowLeft")
+  static readonly arrowRight = this.keyboard("ArrowRight")
+  static readonly arrowUp = this.keyboard("ArrowUp")
+  static readonly arrowDown = this.keyboard("ArrowDown")
+  static readonly esc = this.keyboard("Escape")
 }
 
-type InputInfo = BABYLON.PointerInfo | BABYLON.KeyboardInfo
+type InputInfo = BABYLON.PointerInfo | BABYLON.KeyboardInfo;
 
 export interface InputControl {
-  editable: boolean
-  start(info: InputInfo): void
-  end(info: InputInfo): void
+  readonly name: string;
+  editable: boolean;
+  start(info: InputInfo): void;
+  end(info: InputInfo): void;
 }
 
 export class PressInputControl implements InputControl {
   editable: boolean = true;
-  onStart = new BABYLON.Observable<InputInfo>()
-  lastStart: number = 0
+  onStart = new BABYLON.Observable<InputInfo>();
+  lastStart: number = 0;
+  readonly name: string;
+  constructor(name: string) { this.name = name; }
 
   start(info: InputInfo) { this.onStart.notifyObservers(info); this.lastStart = Date.now(); }
   end(_: InputInfo): void { }
@@ -50,6 +84,8 @@ export class OnceInputControl implements InputControl {
   lastStart: number = 0;
   onEnd = new BABYLON.Observable<InputInfo>();
   lastEnd: number = 0;
+  readonly name: string;
+  constructor(name: string) { this.name = name; }
 
   pressOngoing() { return this.lastStart>this.lastEnd; }
   start(info: InputInfo) { if (!this.pressOngoing()) { this.onStart.notifyObservers(info); this.lastStart = Date.now(); } }
@@ -111,11 +147,11 @@ export class ControlManager {
   hasInput(input: string) { return this.inputs.has(input); }
   controlFor(input: string): InputControl | undefined { return this.inputs.get(input); }
 
-  hasControl(ctrl: InputControl)  { 
+  controlNamed(name: string) { 
     for (let c of this.inputs.values()) {
-      if (c===ctrl) { return true; }
+      if (c.name===name) { return c; }
     }
-    return false;
+    return undefined;
   }
   inputsFor(ctrl: InputControl)  { 
     let result = new Set<string>();
@@ -125,8 +161,15 @@ export class ControlManager {
     return result;
   }
   
-  addWithEmpty(ctrl: InputControl) { return this.add(Inputs.empty(), ctrl); }
-  add(input: string, ctrl: InputControl) { 
+  addEmptyInput(ctrl: InputControl) { return this.addInput(ctrl, Inputs.empty()); }
+  addInputs(ctrl: InputControl, ...input: string[]) {
+    let results: boolean[] = [];
+    for (var i of input) {
+      results.push(this.addInput(ctrl, i));
+    }
+    return results;
+  }
+  addInput(ctrl: InputControl, input: string) { 
     if (Inputs.isEmpty(input) || !this.hasInput(input)) {
       // if ctrl already in inputs add new one anyway as could be secondary
       this.inputs.set(input, ctrl);
@@ -134,12 +177,22 @@ export class ControlManager {
     }
     return false;
   }
+  getOrCreate<T extends InputControl>(ctrl: T, ...input: string[]) {
+    let c = this.controlNamed(ctrl.name) as T;
+    if (c == undefined) { 
+      this.addInputs(ctrl, ...input); 
+      return ctrl;
+    } else {
+      return c;
+    }
+  }
+
   clear(input: string) {
     let ctrl = this.controlFor(input)
     if (!Inputs.isEmpty(input) && ctrl) {
       this.inputs.delete(input);
       if (this.inputsFor(ctrl).size==0) {
-        this.addWithEmpty(ctrl);
+        this.addEmptyInput(ctrl);
       }
     }
   }

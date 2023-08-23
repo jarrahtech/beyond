@@ -8,8 +8,11 @@ if (baseUrl == undefined || baseUrl.trim()==="/") { // required as Electron.js d
 } else {
   baseUrl = baseUrl.trim();
 }
-console.log("Base URL: '"+baseUrl+"'")
+console.log("Base URL: '"+baseUrl+"'");
+console.log(JSON.stringify(process.env.npm_package_version));
 export default defineConfig({
   base: baseUrl,
+  define: {
+    'import.meta.env.PACKAGE_VERSION': JSON.stringify(process.env.npm_package_version),
+  }
 });
-

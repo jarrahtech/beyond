@@ -1,7 +1,8 @@
 import * as BABYLON from "babylonjs";
 
-import { RTSCameraMouseKeyboardInput } from "./kassite/RtsCamera";
-import { ControlManager, Inputs } from "./kassite/InputControl";
+import { RtsCamera } from "./kassite/RtsCamera";
+import { ControlManager } from "./kassite/InputControl";
+import { Skybox } from "./kassite/Util";
 
 let canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
 let engine = new BABYLON.Engine(canvas, true);
@@ -12,11 +13,9 @@ let createScene = function() {
   camera.setTarget(BABYLON.Vector3.Zero());
   camera.speed = 0.2
   camera.fov = 1.0
-  camera.inputs.clear();
-  let camCtrl = new RTSCameraMouseKeyboardInput<BABYLON.FreeCamera>();
-  camera.inputs.add(camCtrl);
   let ctrls = new ControlManager();
-  ctrls.add(Inputs.a, camCtrl.left);
+  RtsCamera.setup(camera, ctrls);
+  Skybox.basic(scene, `${import.meta.env.BASE_URL??"/"}skybox/green_nebula/green-nebula`, 1000);
   ctrls.attach(scene);
   /* let light = */ new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
   let sphere = BABYLON.MeshBuilder.CreateSphere('sphere1', { segments: 16,  diameter: 2}, scene);
