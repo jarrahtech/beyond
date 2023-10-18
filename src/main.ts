@@ -9,6 +9,7 @@ let engine = new BABYLON.Engine(canvas, true);
 
 let createScene = function() {
   let scene = new BABYLON.Scene(engine);
+  scene.useRightHandedSystem = true; // to match Blender
   let camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, -10), scene);
   camera.setTarget(BABYLON.Vector3.Zero());
   camera.speed = 0.2

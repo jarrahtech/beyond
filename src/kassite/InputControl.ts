@@ -74,7 +74,7 @@ export class PressInputControl implements InputControl {
   readonly name: string;
   constructor(name: string) { this.name = name; }
 
-  start(info: InputInfo) { this.onStart.notifyObservers(info); this.lastStart = Date.now(); }
+  start(info: InputInfo):void { this.onStart.notifyObservers(info); this.lastStart = Date.now(); }
   end(_: InputInfo): void { }
 }
 
@@ -91,14 +91,14 @@ export class OnceInputControl implements InputControl {
   start(info: InputInfo) { if (!this.pressOngoing()) { this.onStart.notifyObservers(info); this.lastStart = Date.now(); } }
   end(info: InputInfo) { this.lastEnd = Date.now(); this.onEnd.notifyObservers(info); }
 }
-  
+
 export class ExtendedInputControl extends OnceInputControl {
   doubleThreshold: number = 200; // in milliseconds
   onHold = new BABYLON.Observable<InputInfo>();
   onDouble = new BABYLON.Observable<InputInfo>();
-  
+
   override start(info: InputInfo) {
-    if (this.pressOngoing()) { 
+    if (this.pressOngoing()) {
       this.onHold.notifyObservers(info);
     } else {
       let now = Date.now()
@@ -106,7 +106,7 @@ export class ExtendedInputControl extends OnceInputControl {
         this.onStart.notifyObservers(info);
       } else {
         this.onDouble.notifyObservers(info);
-      } 
+      }
       this.lastStart = Date.now();
     }
   }
@@ -125,7 +125,7 @@ function replacer(_: any, value: any) {
     return value;
   }
 }
-  
+
 function reviver(_: any, value: any) {
   if (typeof value === 'object' && value !== null) {
     if (value.dataType === 'Map') {
@@ -134,33 +134,33 @@ function reviver(_: any, value: any) {
   }
   return value;
 }
-// -----  
+// -----
 
 export class ControlManager {
   private readonly inputs: Map<string, InputControl>
   private detachFn: BABYLON.Nullable<() => void> = null
 
-  constructor(inputs?: Map<string, InputControl>) { 
+  constructor(inputs?: Map<string, InputControl>) {
     this.inputs = (inputs==undefined) ? new Map<string, InputControl>() : inputs;
   }
 
   hasInput(input: string) { return this.inputs.has(input); }
   controlFor(input: string): InputControl | undefined { return this.inputs.get(input); }
 
-  controlNamed(name: string) { 
+  controlNamed(name: string) {
     for (let c of this.inputs.values()) {
       if (c.name===name) { return c; }
     }
     return undefined;
   }
-  inputsFor(ctrl: InputControl)  { 
+  inputsFor(ctrl: InputControl)  {
     let result = new Set<string>();
     for (let e of this.inputs.entries()) {
       if (e[1]===ctrl) { result.add(e[0]); }
     }
     return result;
   }
-  
+
   addEmptyInput(ctrl: InputControl) { return this.addInput(ctrl, Inputs.empty()); }
   addInputs(ctrl: InputControl, ...input: string[]) {
     let results: boolean[] = [];
@@ -169,7 +169,7 @@ export class ControlManager {
     }
     return results;
   }
-  addInput(ctrl: InputControl, input: string) { 
+  addInput(ctrl: InputControl, input: string) {
     if (Inputs.isEmpty(input) || !this.hasInput(input)) {
       // if ctrl already in inputs add new one anyway as could be secondary
       this.inputs.set(input, ctrl);
@@ -179,8 +179,8 @@ export class ControlManager {
   }
   getOrCreate<T extends InputControl>(ctrl: T, ...input: string[]) {
     let c = this.controlNamed(ctrl.name) as T;
-    if (c == undefined) { 
-      this.addInputs(ctrl, ...input); 
+    if (c == undefined) {
+      this.addInputs(ctrl, ...input);
       return ctrl;
     } else {
       return c;
@@ -208,13 +208,13 @@ export class ControlManager {
 
   private mouseEvent = (pInfo: BABYLON.PointerInfo, _: BABYLON.EventState) => {
     if (pInfo.event.movementX!=0 || pInfo.event.movementY!=0) this.controlFor(Inputs.fromPosition(pInfo.event))?.start(pInfo);
-    
+
     switch (pInfo.type) {
       case BABYLON.PointerEventTypes.POINTERDOWN: this.controlFor(Inputs.fromButton(pInfo.event))?.start(pInfo); break;
       case BABYLON.PointerEventTypes.POINTERUP: this.controlFor(Inputs.fromButton(pInfo.event))?.end(pInfo); break;
       case BABYLON.PointerEventTypes.POINTERWHEEL: this.controlFor(Inputs.fromWheel(pInfo.event))?.start(pInfo); break;
       default: // do nothing
-    } 
+    }
     pInfo.event.preventDefault()
   }
 

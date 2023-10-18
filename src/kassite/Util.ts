@@ -1,8 +1,6 @@
 import * as BABYLON from "babylonjs";
-import * as HEX from "./Hex";
-
-export function clamp(val: number, min: number, max: number) { return Math.max(min, Math.min(max, val)); }
-export function clamp01(val: number) { return Math.max(0, Math.min(1, val)); }
+import * as HEX from "./BabylonHex";
+import {root3} from "./common";
 
 export class Skybox {
 
@@ -21,7 +19,7 @@ export class Skybox {
 }
 
 export function drawFlatTopHexTexture(scene: BABYLON.Scene, resolution: number) {
-  let texture = new BABYLON.DynamicTexture("svgTexture", { width: resolution, height: resolution*HEX.root3/2.0 }, scene, true);
+  let texture = new BABYLON.DynamicTexture("svgTexture", { width: resolution, height: resolution*root3/2.0 }, scene, true);
   texture.hasAlpha = true;
   let ctx = texture.getContext();
   ctx.beginPath();

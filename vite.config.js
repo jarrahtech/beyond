@@ -12,7 +12,7 @@ console.log("Base URL: '"+baseUrl+"'");
 console.log(JSON.stringify(process.env.npm_package_version));
 export default defineConfig({
   base: baseUrl,
-  define: {
-    'import.meta.env.PACKAGE_VERSION': JSON.stringify(process.env.npm_package_version),
+  build: {
+    minify: 'esbuild',
   }
 });
