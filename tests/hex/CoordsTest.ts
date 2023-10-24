@@ -1,20 +1,20 @@
-import { Coord, CubeCoord } from "../../src/kassite/Hex";
+import { OffsetCoord, CubeCoord } from "../../src/hex/Coords";
 
 test("Coord", () => {
-  expect(new Coord(3, 2).col).toBe(3);
-  expect(new Coord(3, 2).row).toBe(2);
+  expect(new OffsetCoord(3, 2).col).toBe(3);
+  expect(new OffsetCoord(3, 2).row).toBe(2);
 });
 
 test("CoordAdd", () => {
-  expect(Coord.zero.add(Coord.zero)).toStrictEqual(Coord.zero);
-  expect(Coord.zero.add(Coord.south)).toStrictEqual(Coord.south);
-  expect(new Coord(5, 2).add(new Coord(7, -58))).toStrictEqual(new Coord(12, -56));
+  expect(OffsetCoord.zero.add(OffsetCoord.zero)).toStrictEqual(OffsetCoord.zero);
+  expect(OffsetCoord.zero.add(OffsetCoord.south)).toStrictEqual(OffsetCoord.south);
+  expect(new OffsetCoord(5, 2).add(new OffsetCoord(7, -58))).toStrictEqual(new OffsetCoord(12, -56));
 });
 
 test("CoordMinus", () => {
-  expect(Coord.zero.subtract(Coord.zero)).toStrictEqual(Coord.zero);
-  expect(Coord.zero.subtract(Coord.south)).toStrictEqual(Coord.north);
-  expect(new Coord(5, 2).subtract(new Coord(7, -58))).toStrictEqual(new Coord(-2, 60));
+  expect(OffsetCoord.zero.subtract(OffsetCoord.zero)).toStrictEqual(OffsetCoord.zero);
+  expect(OffsetCoord.zero.subtract(OffsetCoord.south)).toStrictEqual(OffsetCoord.north);
+  expect(new OffsetCoord(5, 2).subtract(new OffsetCoord(7, -58))).toStrictEqual(new OffsetCoord(-2, 60));
 });
 
 test("CubeCoordAdd", () => {

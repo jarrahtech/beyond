@@ -1,6 +1,6 @@
 import * as BABYLON from "babylonjs";
 import { OnceInputControl, PressInputControl, ControlManager, Inputs } from "./InputControl";
-import { clamp } from "./common";
+import { clamp } from "../util/Math";
 
 export class RTSCameraMouseKeyboardInput<TCamera extends BABYLON.TargetCamera> implements BABYLON.ICameraInput<TCamera> {
   camera: BABYLON.Nullable<TCamera> = null;

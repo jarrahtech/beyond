@@ -1,6 +1,6 @@
 import * as BABYLON from "babylonjs";
-import * as HEX from "./BabylonHex";
-import {root3} from "./common";
+import * as HEX from "./Hex";
+import {root3} from "../hex/Common";
 
 export class Skybox {
 
