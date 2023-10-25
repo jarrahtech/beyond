@@ -1,36 +1,37 @@
-import * as BABYLON from "babylonjs";
+import * as BABYLON from 'babylonjs'
+import { setupRtsCamera } from './kassite/RtsCamera'
+import { ControlManager } from './kassite/InputControl'
+import { basicSkybox } from './kassite/Util'
 
-import { RtsCamera } from "./kassite/RtsCamera";
-import { ControlManager } from "./kassite/InputControl";
-import { Skybox } from "./kassite/Util";
+const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement
+const engine = new BABYLON.Engine(canvas, true)
+engine.setHardwareScalingLevel(1 / window.devicePixelRatio)
 
-let canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
-let engine = new BABYLON.Engine(canvas, true);
-
-let createScene = function() {
-  let scene = new BABYLON.Scene(engine);
-  scene.useRightHandedSystem = true; // to match Blender
-  let camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, -10), scene);
-  camera.setTarget(BABYLON.Vector3.Zero());
+const createScene = function (): { scene: BABYLON.Scene, camera: BABYLON.FreeCamera } {
+  const scene = new BABYLON.Scene(engine)
+  scene.useRightHandedSystem = true // to match Blender
+  const camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, -10), scene)
+  camera.setTarget(BABYLON.Vector3.Zero())
   camera.speed = 0.2
   camera.fov = 1.0
-  let ctrls = new ControlManager();
-  RtsCamera.setup(camera, ctrls);
-  Skybox.basic(scene, `${import.meta.env.BASE_URL??"/"}skybox/green_nebula/green-nebula`, 1000);
-  ctrls.attach(scene);
-  /* let light = */ new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
-  let sphere = BABYLON.MeshBuilder.CreateSphere('sphere1', { segments: 16,  diameter: 2}, scene);
-  sphere.position.y = 1;
-  /* let ground = */ BABYLON.MeshBuilder.CreateGround('ground1', { width: 6, height: 6, subdivisions: 2} , scene);
-  return { scene, camera };
+  const ctrls = new ControlManager()
+  setupRtsCamera(camera, ctrls)
+  basicSkybox(scene, `${import.meta.env.BASE_URL ?? '/'}skybox/green_nebula/green-nebula`, 1000)
+  ctrls.attach(scene)
+  const light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene)
+  light.intensity = 1
+  // let sphere = BABYLON.MeshBuilder.CreateSphere('sphere1', { segments: 16,  diameter: 2}, scene);
+  // sphere.position.y = 1;
+  /* let ground = */ BABYLON.MeshBuilder.CreateGround('ground1', { width: 6, height: 6, subdivisions: 2 }, scene)
+  return { scene, camera }
 }
 
-let ctx = createScene();
+const ctx = createScene()
+window.addEventListener('resize', _ => { engine.resize() })
+window.addEventListener('load', _ => { engine.resize() })
 
-engine.runRenderLoop(function(){
-  ctx.scene.render();
-});
+engine.runRenderLoop(() => { ctx.scene.render() })
 
-window.addEventListener('resize', function(){
-  engine.resize();
-});
+window.addEventListener('resize', function () {
+  engine.resize()
+})
