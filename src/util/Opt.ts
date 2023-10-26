@@ -28,8 +28,3 @@ export function minByFn<T> (arr: T[], fn: (e: T) => number): Opt<T> {
     return v < max[1] ? [e, fn(e)] : max
   }, [undefined, Number.MAX_VALUE])[0]
 }
-
-export function append<T> (arr: T[], ...item: T[]): T[] {
-  arr.push(...item)
-  return arr
-}

@@ -1,4 +1,5 @@
-import { ifDef, ifDefElse, append, flatmap, defined } from '../util/Opt'
+import { ifDef, ifDefElse, flatmap, defined } from '../util/Opt'
+import { append } from '../util/ArrayUtils'
 import { PriorityQueue } from '../util/PriorityQueue'
 import { type OffsetCoord, type CoordSystem } from './Coords'
 import { type HexGrid } from './Grids'
