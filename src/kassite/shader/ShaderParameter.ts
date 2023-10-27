@@ -154,20 +154,22 @@ export class V4ShaderParameter extends ShaderParameter<BABYLON.Vector4> {
 }
 
 export class ShaderParams implements Iterable<ShaderParameter<any>> {
+  readonly uniformNames
+  readonly textureNames
   constructor (public params: Array<ShaderParameter<any>>) {
     for (let i = 0; i < params.length; i++) {
       for (let j = i + 1; j < params.length; j++) {
         if (params[i].name === params[j].name) throw RangeError('duplicate name')
       }
     }
+    this.uniformNames = this.collectNames(ShaderParamType.Uniform)
+    this.textureNames = this.collectNames(ShaderParamType.Texture)
   }
 
   [Symbol.iterator] (): Iterator<ShaderParameter<any>> { return this.params[Symbol.iterator]() }
   union (other: ShaderParams): ShaderParams { return new ShaderParams(this.params.concat(other.params)) }
 
   private collectNames (type: ShaderParamType): string[] { return this.params.filter((s) => s.type === type).map((s) => s.name) }
-  readonly uniformNames = this.collectNames(ShaderParamType.Uniform)
-  readonly textureNames = this.collectNames(ShaderParamType.Texture)
 }
 
 // TODO: derive(code: String): ShaderParams = ???

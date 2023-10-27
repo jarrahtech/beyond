@@ -80,7 +80,7 @@ export abstract class CoordSystem {
   readonly abstract hexRadiiHeight: number
 
   protected abstract neighborLine (pos: OffsetCoord): number
-  protected abstract axialFromRadii (radiiPos: OffsetCoord): OffsetCoord
+  protected abstract axialFromRadii (radiiPos: RadiiCoord): OffsetCoord
   protected abstract toAxial (coord: OffsetCoord): AxialCoord
 
   abstract toRadii (coord: OffsetCoord): RadiiCoord
@@ -106,7 +106,7 @@ export abstract class CoordSystem {
   closest (from: OffsetCoord, zone: OffsetCoord[]): Opt<OffsetCoord> { return minByFn(zone, e => this.distance(from, e)) }
   furthest (from: OffsetCoord, zone: OffsetCoord[]): Opt<OffsetCoord> { return maxByFn(zone, e => this.distance(from, e)) }
 
-  fromRadii (radiiPos: OffsetCoord): OffsetCoord {
+  fromRadii (radiiPos: RadiiCoord): OffsetCoord {
     const cube = CubeCoord.fromAxial(this.axialFromRadii(radiiPos))
     return this.toOffset(cube.round())
   }
@@ -120,7 +120,7 @@ abstract class HorizontalCoordSystem extends CoordSystem { // pointy tops
 
   protected neighborLine (pos: OffsetCoord): number { return pos.row & 1 }
 
-  protected axialFromRadii (radiiPos: OffsetCoord): OffsetCoord { return new OffsetCoord(root3div3 * radiiPos.col - radiiPos.row / 3, twoThirds * radiiPos.row) }
+  protected axialFromRadii (radiiPos: RadiiCoord): OffsetCoord { return new OffsetCoord(root3div3 * radiiPos.x - radiiPos.y / 3, twoThirds * radiiPos.y) }
 }
 
 abstract class VerticalCoordSystem extends CoordSystem { // flat tops
@@ -131,7 +131,7 @@ abstract class VerticalCoordSystem extends CoordSystem { // flat tops
 
   protected neighborLine (pos: OffsetCoord): number { return pos.col & 1 }
 
-  protected axialFromRadii (radiiPos: OffsetCoord): OffsetCoord { return new OffsetCoord(twoThirds * radiiPos.col, root3div3 * radiiPos.row - radiiPos.col / 3) }
+  protected axialFromRadii (radiiPos: RadiiCoord): OffsetCoord { return new OffsetCoord(twoThirds * radiiPos.x, root3div3 * radiiPos.y - radiiPos.x / 3) }
 }
 
 export class EvenHorizontalCoordSystem extends HorizontalCoordSystem {
