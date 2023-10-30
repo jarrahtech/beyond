@@ -2,7 +2,7 @@ import * as BABYLON from 'babylonjs'
 import { setupRtsCamera } from './kassite/RtsCamera'
 import { ControlManager } from './kassite/InputControl'
 import { basicSkybox } from './kassite/Util'
-import { BabylonGrid } from './kassite/Hex'
+import { SparseGridDisplay, FlatTopHexTextures } from './kassite/Hex'
 import { OffsetCoord } from './hex/Coords'
 
 const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement
@@ -12,7 +12,7 @@ engine.setHardwareScalingLevel(1 / window.devicePixelRatio)
 const createScene = function (): { scene: BABYLON.Scene, camera: BABYLON.FreeCamera } {
   const scene = new BABYLON.Scene(engine)
   scene.useRightHandedSystem = true // to match Blender
-  const camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, -10), scene)
+  const camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 10, -4), scene)
   camera.setTarget(BABYLON.Vector3.Zero())
   camera.speed = 0.2
   camera.fov = 1.0
@@ -33,11 +33,20 @@ window.addEventListener('resize', _ => { engine.resize() })
 window.addEventListener('load', _ => { engine.resize() })
 
 // const tex = drawFlatTopHexTexture(ctx.scene, 512)
-const grid = new BabylonGrid(0.75)
-grid.drawHex(ctx.scene, OffsetCoord.zero)
+const grid = new SparseGridDisplay(0.75, new FlatTopHexTextures())
+grid.drawOutline(ctx.scene, OffsetCoord.zero)
 
 engine.runRenderLoop(() => { ctx.scene.render() })
 
 window.addEventListener('resize', function () {
   engine.resize()
 })
+
+export class HexDisplay {
+  entity?: number
+  base?: number
+  outline?: number
+  stamp?: number
+
+  isBlank (): boolean { return this.entity === undefined && this.base === undefined && this.outline === undefined && this.stamp === undefined }
+}

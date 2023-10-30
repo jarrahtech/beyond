@@ -1,13 +1,20 @@
 import * as BABYLON from 'babylonjs'
-import { drawTexture } from './Util'
+import { drawTexture, type MeshMaterial } from './Util'
 import { root3 } from '../hex/Common'
 import { type OffsetCoord, type EvenVerticalCoordSystem, evenVerticalCoords, RadiiCoord } from '../hex/Coords'
 import { type HexGrid, SparseHexGrid } from '../hex/Grids'
 
-export const flatTopHexPixelPoints = [new BABYLON.Vector2(0, root3 / 4.0), new BABYLON.Vector2(0.25, root3 / 2.0), new BABYLON.Vector2(0.75, root3 / 2.0), new BABYLON.Vector2(1, root3 / 4.0), new BABYLON.Vector2(0.75, 0), new BABYLON.Vector2(0.25, 0)]
-export const pointyTopHexPixelPoints = [new BABYLON.Vector2(0, 0.25), new BABYLON.Vector2(0, 0.75), new BABYLON.Vector2(root3 / 4.0, 1), new BABYLON.Vector2(root3 / 2.0, 0.75), new BABYLON.Vector2(root3 / 2.0, 0.25), new BABYLON.Vector2(root3 / 4.0, 0)]
+const defaultResolution = 512
+const hexRotateVector = new BABYLON.Vector3(1, 0, 0)
+const hexRotateMagnitude = Math.PI / 2
 
-export function drawFlatTopHexTexture (scene: BABYLON.Scene | undefined, resolution: number): BABYLON.DynamicTexture {
+function toV3xzFlat (v: RadiiCoord): BABYLON.Vector3 { return new BABYLON.Vector3(v.x, 0, v.y) }
+function toV2xzFlat (v: BABYLON.Vector3): RadiiCoord { return new RadiiCoord(v.x, v.z) }
+
+const flatTopHexPixelPoints = [new BABYLON.Vector2(0, root3 / 4.0), new BABYLON.Vector2(0.25, root3 / 2.0), new BABYLON.Vector2(0.75, root3 / 2.0), new BABYLON.Vector2(1, root3 / 4.0), new BABYLON.Vector2(0.75, 0), new BABYLON.Vector2(0.25, 0)]
+const pointyTopHexPixelPoints = [new BABYLON.Vector2(0, 0.25), new BABYLON.Vector2(0, 0.75), new BABYLON.Vector2(root3 / 4.0, 1), new BABYLON.Vector2(root3 / 2.0, 0.75), new BABYLON.Vector2(root3 / 2.0, 0.25), new BABYLON.Vector2(root3 / 4.0, 0)]
+
+function drawHexOutline (scene: BABYLON.Scene | undefined, points: BABYLON.Vector2[], resolution: number): BABYLON.DynamicTexture {
   const texture = new BABYLON.DynamicTexture('svgTexture', { width: resolution, height: resolution * root3 / 2.0 }, scene, true)
 
   texture.hasAlpha = true
@@ -16,7 +23,7 @@ export function drawFlatTopHexTexture (scene: BABYLON.Scene | undefined, resolut
   ctx.lineWidth = resolution / 32
   const mult = resolution - ctx.lineWidth * 2
   const widthVec = new BABYLON.Vector2(ctx.lineWidth, ctx.lineWidth)
-  const pts = flatTopHexPixelPoints.map((p) => p.scale(mult).addInPlace(widthVec))
+  const pts = points.map((p) => p.scale(mult).addInPlace(widthVec))
   const last = pts[pts.length - 1]
   ctx.moveTo(last.x, last.y)
   pts.forEach((p) => { ctx.lineTo(p.x, p.y) })
@@ -28,21 +35,43 @@ export function drawFlatTopHexTexture (scene: BABYLON.Scene | undefined, resolut
   return texture
 }
 
-function toV3xzFlat (v: RadiiCoord): BABYLON.Vector3 { return new BABYLON.Vector3(v.x, 0, v.y) }
-function toV2xzFlat (v: BABYLON.Vector3): RadiiCoord { return new RadiiCoord(v.x, v.z) }
+export interface HexTextures {
+  outlineTexture: () => BABYLON.Texture
+  hexTexture: () => BABYLON.Texture
+}
 
-export class BabylonGrid {
-  static readonly resolution = 512
-  readonly hexTexture = drawFlatTopHexTexture(undefined, BabylonGrid.resolution)
-  static readonly hexRotateVector = new BABYLON.Vector3(1, 0, 0)
-  static readonly hexRotateMagnitude = Math.PI / 2
+export class FlatTopHexTextures implements HexTextures {
+  public readonly outline: BABYLON.Texture
+  public readonly hex: BABYLON.Texture
 
-  model: HexGrid<Entity, EvenVerticalCoordSystem>
+  constructor (scene: BABYLON.Scene | undefined = undefined, resolution: number = defaultResolution) {
+    this.outline = drawHexOutline(scene, flatTopHexPixelPoints, resolution)
+    this.hex = drawHexOutline(scene, flatTopHexPixelPoints, resolution)
+  }
+
+  outlineTexture (): BABYLON.Texture { return this.outline }
+  hexTexture (): BABYLON.Texture { return this.hex }
+}
+
+export class PointyTopHexTextures implements HexTextures {
+  public readonly outline: BABYLON.Texture
+  public readonly hex: BABYLON.Texture
+
+  constructor (scene: BABYLON.Scene | undefined = undefined, resolution: number = defaultResolution) {
+    this.outline = drawHexOutline(scene, pointyTopHexPixelPoints, resolution)
+    this.hex = drawHexOutline(scene, pointyTopHexPixelPoints, resolution)
+  }
+
+  outlineTexture (): BABYLON.Texture { return this.outline }
+  hexTexture (): BABYLON.Texture { return this.hex }
+}
+
+export class SparseGridDisplay<H> {
+  model: HexGrid<H, EvenVerticalCoordSystem>
   hexSize: { width: number, length: number }
-  hexDisplays = new Map<string, HexDisplay>()
 
-  constructor (public hexRadius: number) {
-    this.model = SparseHexGrid.empty<Entity, EvenVerticalCoordSystem>(evenVerticalCoords)
+  constructor (public hexRadius: number, public textures: HexTextures) {
+    this.model = SparseHexGrid.empty<H, EvenVerticalCoordSystem>(evenVerticalCoords)
     this.hexSize = { width: this.model.coords.hexRadiiWidth * hexRadius, length: this.model.coords.hexRadiiHeight * hexRadius }
   }
 
@@ -71,22 +100,23 @@ export class BabylonGrid {
       add(e, to)
     }
   }
+
 */
-  drawHex (scene: BABYLON.Scene, coord: OffsetCoord, opacity: number = 0.9, colour: BABYLON.Color3 = BABYLON.Color3.White()): void {
-    const tex = drawTexture(scene, this.hexSize, this.hexTexture)
-    tex.mesh.rotate(BabylonGrid.hexRotateVector, BabylonGrid.hexRotateMagnitude)
+
+  drawOutline (scene: BABYLON.Scene, coord: OffsetCoord, opacity: number = 0.9, colour: BABYLON.Color3 = BABYLON.Color3.White()): MeshMaterial {
+    return this.drawAtCoord(scene, coord, this.textures.outlineTexture(), opacity, colour)
+  }
+
+  // drawHex
+  // drawStamp
+
+  protected drawAtCoord (scene: BABYLON.Scene, coord: OffsetCoord, texture: BABYLON.Texture, opacity: number, colour: BABYLON.Color3): MeshMaterial {
+    const tex = drawTexture(scene, this.hexSize, texture)
+    tex.mesh.rotate(hexRotateVector, hexRotateMagnitude)
     tex.mesh.position = this.toPixel(coord)
     tex.material.setFloat('opacity', opacity)
     tex.material.setColor3('color', colour)
     tex.mesh.isPickable = false
-    // return [new StampDisplay(mesh, tex.material)]
+    return tex
   }
-}
-
-class Entity {
-  v: number = 2
-}
-
-class HexDisplay {
-  v: number = 2
 }

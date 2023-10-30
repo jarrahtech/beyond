@@ -26,7 +26,9 @@ export function basicSkybox (scene: BABYLON.Scene, imagesUrl: string, size: numb
   skybox.isPickable = false
 }
 
-export function drawTexture (scene: BABYLON.Scene, size: { width: number, length: number }, texture: BABYLON.DynamicTexture): { mesh: BABYLON.Mesh, material: ParameterisedShaderMaterial } {
+export interface MeshMaterial { mesh: BABYLON.Mesh, material: ParameterisedShaderMaterial }
+
+export function drawTexture (scene: BABYLON.Scene, size: { width: number, length: number }, texture: BABYLON.Texture): MeshMaterial {
   const plane = BABYLON.MeshBuilder.CreatePlane('plane', size, scene)
   const material = unlitTransparent().toMaterial(scene)
   material.setTexture('tex', texture)
