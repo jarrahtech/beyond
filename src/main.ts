@@ -2,8 +2,8 @@ import * as BABYLON from 'babylonjs'
 import { setupRtsCamera } from './kassite/RtsCamera'
 import { ControlManager } from './kassite/InputControl'
 import { basicSkybox } from './kassite/Util'
-import { SparseGridDisplay, FlatTopHexTextures } from './kassite/Hex'
-import { OffsetCoord } from './hex/Coords'
+import { SparseGridDisplay } from './kassite/Hex'
+import { OffsetCoord, evenHorizontalCoords, type EvenHorizontalCoordSystem } from './hex/Coords'
 
 const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement
 const engine = new BABYLON.Engine(canvas, true)
@@ -33,7 +33,7 @@ window.addEventListener('resize', _ => { engine.resize() })
 window.addEventListener('load', _ => { engine.resize() })
 
 // const tex = drawFlatTopHexTexture(ctx.scene, 512)
-const grid = new SparseGridDisplay(0.75, new FlatTopHexTextures())
+const grid = SparseGridDisplay.empty<number, number, EvenHorizontalCoordSystem>(evenHorizontalCoords, 0.75)
 grid.drawOutline(ctx.scene, OffsetCoord.zero)
 
 engine.runRenderLoop(() => { ctx.scene.render() })

@@ -1,8 +1,8 @@
 import * as BABYLON from 'babylonjs'
 import { drawTexture, type MeshMaterial } from './Util'
 import { root3 } from '../hex/Common'
-import { type OffsetCoord, type EvenVerticalCoordSystem, evenVerticalCoords, RadiiCoord } from '../hex/Coords'
-import { type HexGrid, SparseHexGrid } from '../hex/Grids'
+import { type OffsetCoord, RadiiCoord, type CoordSystem } from '../hex/Coords'
+import { SparseHexGrid } from '../hex/Grids'
 
 const defaultResolution = 512
 const hexRotateVector = new BABYLON.Vector3(1, 0, 0)
@@ -66,12 +66,18 @@ export class PointyTopHexTextures implements HexTextures {
   hexTexture (): BABYLON.Texture { return this.hex }
 }
 
-export class SparseGridDisplay<H> {
-  model: HexGrid<H, EvenVerticalCoordSystem>
+export function defaultTextures (coords: CoordSystem): HexTextures {
+  return coords.isHorizontal ? new FlatTopHexTextures() : new PointyTopHexTextures()
+}
+
+export class SparseGridDisplay<M, D, C extends CoordSystem> {
   hexSize: { width: number, length: number }
 
-  constructor (public hexRadius: number, public textures: HexTextures) {
-    this.model = SparseHexGrid.empty<H, EvenVerticalCoordSystem>(evenVerticalCoords)
+  static empty<M, D, C extends CoordSystem>(coords: C, hexRadius: number): SparseGridDisplay<M, D, C> {
+    return new SparseGridDisplay(SparseHexGrid.empty<M, C>(coords), SparseHexGrid.empty<D, C>(coords), hexRadius, defaultTextures(coords))
+  }
+
+  constructor (public model: SparseHexGrid<M, C>, public display: SparseHexGrid<D, C>, public hexRadius: number, public textures: HexTextures) {
     this.hexSize = { width: this.model.coords.hexRadiiWidth * hexRadius, length: this.model.coords.hexRadiiHeight * hexRadius }
   }
 

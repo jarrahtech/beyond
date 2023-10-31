@@ -43,6 +43,7 @@ export abstract class HexGrid<H, C extends CoordSystem> implements Iterable<[Off
 }
 
 export class SparseHexGrid<H, C extends CoordSystem> extends HexGrid<H, C> {
+  // TODO: is there a better way to do this? repeating the coords type (once in generics, once in parameter). Do this all over the place :(
   static empty<H, C extends CoordSystem>(coords: C): SparseHexGrid<H, C> { return new SparseHexGrid<H, C>(coords, new Map<OffsetCoord, H>()) }
 
   private readonly hexes = new Map<string, [OffsetCoord, H]>()
