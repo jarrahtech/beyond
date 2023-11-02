@@ -2,7 +2,8 @@ import * as BABYLON from 'babylonjs'
 import { drawTexture, type MeshMaterial } from './Util'
 import { root3 } from '../hex/Common'
 import { type OffsetCoord, RadiiCoord, type CoordSystem } from '../hex/Coords'
-import { SparseHexGrid } from '../hex/Grids'
+import { type SparseHexGrid } from '../hex/Grids'
+import { type Opt } from '../util/Opt'
 
 const defaultResolution = 512
 const hexRotateVector = new BABYLON.Vector3(1, 0, 0)
@@ -73,48 +74,21 @@ export function defaultTextures (coords: CoordSystem): HexTextures {
 export class SparseGridDisplay<M, D, C extends CoordSystem> {
   hexSize: { width: number, length: number }
 
-  static empty<M, D, C extends CoordSystem>(coords: C, hexRadius: number): SparseGridDisplay<M, D, C> {
-    return new SparseGridDisplay(SparseHexGrid.empty<M, C>(coords), SparseHexGrid.empty<D, C>(coords), hexRadius, defaultTextures(coords))
-  }
-
   constructor (public model: SparseHexGrid<M, C>, public display: SparseHexGrid<D, C>, public hexRadius: number, public textures: HexTextures) {
     this.hexSize = { width: this.model.coords.hexRadiiWidth * hexRadius, length: this.model.coords.hexRadiiHeight * hexRadius }
   }
 
   fromPixel (p: BABYLON.Vector3): OffsetCoord { return this.model.coords.fromRadii(toV2xzFlat(p.scaleInPlace(1 / this.hexRadius))) }
   toPixel (c: OffsetCoord): BABYLON.Vector3 { return toV3xzFlat(this.model.coords.toRadii(c)).scaleInPlace(this.hexRadius) }
-  /*
-  display(coord: Coord) = hexDisplays.get(coord).foreach(_.display(this, coord))
-  createHexDisplay(coord: Coord) = HexDisplay().tap(d => hexDisplays.addOne((coord, d)))
-  addDisplay(coord: Coord, reason: HexDisplayReason) = hexDisplays.getOrElseUpdate(coord, createHexDisplay(coord)).tap(_.add(reason)).display(this, coord)
-  removeDisplay(coord: Coord, reason: HexDisplayReason) = hexDisplays.get(coord).foreach(d => if (d.remove(reason)) hexDisplays.remove(coord) else d.display(this, coord))
 
-  add(entity: Entity, coord: Coord) = {
-    addDisplay(coord, EntityReason(entity))
-    val reason = EntityZoneReason(coord)
-    grid.set(coord, entity)
-    grid.neighbors(coord, Some(_)).foreach(addDisplay(_, reason))
-  }
-  def entityAt = grid.hexAt
-
-  def select(coord: Coord) = addDisplay(coord, SelectionReason())
-  def unselect(coord: Coord) = removeDisplay(coord, SelectionReason())
-
-  def moveEntity(from: Coord, to: Coord) = {
-    grid.clear(from).foreach { e =>
-      removeDisplay(from, EntityReason(e))
-      add(e, to)
-    }
-  }
-
-*/
+  get (coord: OffsetCoord): { model: Opt<M>, display: Opt<D> } { return { model: this.model.hexAt(coord), display: this.display.hexAt(coord) } }
 
   drawOutline (scene: BABYLON.Scene, coord: OffsetCoord, opacity: number = 0.9, colour: BABYLON.Color3 = BABYLON.Color3.White()): MeshMaterial {
     return this.drawAtCoord(scene, coord, this.textures.outlineTexture(), opacity, colour)
   }
 
-  // drawHex
-  // drawStamp
+  // TODO: drawHex
+  // TODO: drawStamp
 
   protected drawAtCoord (scene: BABYLON.Scene, coord: OffsetCoord, texture: BABYLON.Texture, opacity: number, colour: BABYLON.Color3): MeshMaterial {
     const tex = drawTexture(scene, this.hexSize, texture)
