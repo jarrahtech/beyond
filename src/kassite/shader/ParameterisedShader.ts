@@ -1,4 +1,4 @@
-import * as BABYLON from 'babylonjs'
+import { type Scene, Effect, type IShaderMaterialOptions } from '@babylonjs/core'
 import { type ShaderParams } from './ShaderParameter'
 import { ParameterisedShaderMaterial } from './ParameterisedShaderMaterial'
 
@@ -8,7 +8,7 @@ export const Fragment: ShaderType = { suffix: 'FragmentShader', path: 'fragment'
 
 abstract class SubShader {
   constructor (public name: string, public type: string, public params: ShaderParams, public code: string) {
-    if (BABYLON.Effect.ShadersStore[name] === undefined) { BABYLON.Effect.ShadersStore[`${name}${type}`] = code }
+    if (Effect.ShadersStore[name] === undefined) { Effect.ShadersStore[`${name}${type}`] = code }
   }
 }
 
@@ -29,7 +29,7 @@ export class FragmentShader extends SubShader {
 export class ParameterisedShader {
   readonly defaults: ShaderParams
   readonly toShaderPath: { vertex: string, fragment: string } // TODO: handle other path types? See https://doc.babylonjs.com/features/featuresDeepDive/materials/shaders/shaderMaterial
-  readonly toShaderOpts: Partial<BABYLON.IShaderMaterialOptions>
+  readonly toShaderOpts: Partial<IShaderMaterialOptions>
 
   constructor (public vertex: VertexShader, public fragment: FragmentShader) {
     this.defaults = vertex.params.union(fragment.params)
@@ -37,6 +37,6 @@ export class ParameterisedShader {
     this.toShaderPath = { vertex: this.vertex.name, fragment: this.fragment.name }
   }
 
-  toMaterial (scene: BABYLON.Scene): ParameterisedShaderMaterial { return this.toNamedMaterial(scene, `${this.fragment.name}_material`) }
-  toNamedMaterial (scene: BABYLON.Scene, name: string): ParameterisedShaderMaterial { return new ParameterisedShaderMaterial(name, scene, this) }
+  toMaterial (scene: Scene): ParameterisedShaderMaterial { return this.toNamedMaterial(scene, `${this.fragment.name}_material`) }
+  toNamedMaterial (scene: Scene, name: string): ParameterisedShaderMaterial { return new ParameterisedShaderMaterial(name, scene, this) }
 }

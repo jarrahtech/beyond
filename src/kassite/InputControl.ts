@@ -1,9 +1,9 @@
-import * as BABYLON from 'babylonjs'
-import * as Input from './Inputs'
+import { Observable, type PointerInfo, type KeyboardInfo, type Nullable, type Scene, KeyboardEventTypes, PointerEventTypes, type EventState } from '@babylonjs/core'
+import { empty, isEmpty, fromPosition, fromButton, fromKeyboard, fromWheel } from './Inputs'
 import { replacer, reviver } from '../util/MapUtils'
 import { type Opt } from '../util/Opt'
 
-type InputInfo = BABYLON.PointerInfo | BABYLON.KeyboardInfo
+type InputInfo = PointerInfo | KeyboardInfo
 
 export interface InputControl {
   readonly name: string
@@ -14,7 +14,7 @@ export interface InputControl {
 
 export class PressInputControl implements InputControl {
   editable: boolean = true
-  onStart = new BABYLON.Observable<InputInfo>()
+  onStart = new Observable<InputInfo>()
   lastStart: number = 0
   readonly name: string
   constructor (name: string) { this.name = name }
@@ -25,9 +25,9 @@ export class PressInputControl implements InputControl {
 
 export class OnceInputControl implements InputControl {
   editable: boolean = true
-  onStart = new BABYLON.Observable<InputInfo>()
+  onStart = new Observable<InputInfo>()
   lastStart: number = 0
-  onEnd = new BABYLON.Observable<InputInfo>()
+  onEnd = new Observable<InputInfo>()
   lastEnd: number = 0
   readonly name: string
   constructor (name: string) { this.name = name }
@@ -38,8 +38,8 @@ export class OnceInputControl implements InputControl {
 }
 
 export class ExtendedInputControl extends OnceInputControl {
-  onHold = new BABYLON.Observable<InputInfo>()
-  onDouble = new BABYLON.Observable<InputInfo>()
+  onHold = new Observable<InputInfo>()
+  onDouble = new Observable<InputInfo>()
 
   constructor (name: string, public doubleThreshold: number = 200 /* in milliseconds */) { super(name) }
 
@@ -60,7 +60,7 @@ export class ExtendedInputControl extends OnceInputControl {
 
 export class ControlManager {
   private readonly inputs: Map<string, InputControl>
-  private detachFn: BABYLON.Nullable<() => void> = null
+  private detachFn: Nullable<() => void> = null
 
   constructor (inputs?: Map<string, InputControl>) {
     this.inputs = inputs ?? new Map<string, InputControl>()
@@ -84,7 +84,7 @@ export class ControlManager {
     return result
   }
 
-  addEmptyInput (ctrl: InputControl): boolean { return this.addInput(ctrl, Input.empty()) }
+  addEmptyInput (ctrl: InputControl): boolean { return this.addInput(ctrl, empty()) }
   addInputs (ctrl: InputControl, ...input: string[]): boolean[] {
     const results: boolean[] = []
     for (const i of input) {
@@ -94,7 +94,7 @@ export class ControlManager {
   }
 
   addInput (ctrl: InputControl, input: string): boolean {
-    if (Input.isEmpty(input) || !this.hasInput(input)) {
+    if (isEmpty(input) || !this.hasInput(input)) {
       // if ctrl already in inputs add new one anyway as could be secondary
       this.inputs.set(input, ctrl)
       return true
@@ -114,7 +114,7 @@ export class ControlManager {
 
   clear (input: string): void {
     const ctrl = this.controlFor(input)
-    if (!Input.isEmpty(input) && ctrl !== undefined) {
+    if (!isEmpty(input) && ctrl !== undefined) {
       this.inputs.delete(input)
       if (this.inputsFor(ctrl).size === 0) {
         this.addEmptyInput(ctrl)
@@ -125,7 +125,7 @@ export class ControlManager {
   stringify (): string { return JSON.stringify(this.inputs, replacer) }
   static parse (json: string): ControlManager { return new ControlManager(JSON.parse(json, reviver)) }
 
-  attach (scene: BABYLON.Scene): void {
+  attach (scene: Scene): void {
     const ptrObs = scene.onPointerObservable.add(this.mouseEvent)
     const keyObs = scene.onKeyboardObservable.add(this.keyboardEvent)
     this.detachFn = function () { scene.onPointerObservable.remove(ptrObs); scene.onKeyboardObservable.remove(keyObs) }
@@ -133,22 +133,22 @@ export class ControlManager {
 
   detach (): void { this.detachFn?.(); this.detachFn = null }
 
-  private readonly mouseEvent = (pInfo: BABYLON.PointerInfo, _: BABYLON.EventState): void => {
-    if (pInfo.event.movementX !== 0 || pInfo.event.movementY !== 0) this.controlFor(Input.fromPosition(pInfo.event))?.start(pInfo)
+  private readonly mouseEvent = (pInfo: PointerInfo, _: EventState): void => {
+    if (pInfo.event.movementX !== 0 || pInfo.event.movementY !== 0) this.controlFor(fromPosition(pInfo.event))?.start(pInfo)
 
     switch (pInfo.type) {
-      case BABYLON.PointerEventTypes.POINTERDOWN: this.controlFor(Input.fromButton(pInfo.event))?.start(pInfo); break
-      case BABYLON.PointerEventTypes.POINTERUP: this.controlFor(Input.fromButton(pInfo.event))?.end(pInfo); break
-      case BABYLON.PointerEventTypes.POINTERWHEEL: this.controlFor(Input.fromWheel(pInfo.event))?.start(pInfo); break
+      case PointerEventTypes.POINTERDOWN: this.controlFor(fromButton(pInfo.event))?.start(pInfo); break
+      case PointerEventTypes.POINTERUP: this.controlFor(fromButton(pInfo.event))?.end(pInfo); break
+      case PointerEventTypes.POINTERWHEEL: this.controlFor(fromWheel(pInfo.event))?.start(pInfo); break
       default: // do nothing
     }
     pInfo.event.preventDefault()
   }
 
-  private readonly keyboardEvent = (kInfo: BABYLON.KeyboardInfo, _: BABYLON.EventState): void => {
+  private readonly keyboardEvent = (kInfo: KeyboardInfo, _: EventState): void => {
     switch (kInfo.type) {
-      case BABYLON.KeyboardEventTypes.KEYDOWN: this.controlFor(Input.fromKeyboard(kInfo.event))?.start(kInfo); break
-      case BABYLON.KeyboardEventTypes.KEYUP: this.controlFor(Input.fromKeyboard(kInfo.event))?.end(kInfo); break
+      case KeyboardEventTypes.KEYDOWN: this.controlFor(fromKeyboard(kInfo.event))?.start(kInfo); break
+      case KeyboardEventTypes.KEYUP: this.controlFor(fromKeyboard(kInfo.event))?.end(kInfo); break
       default: // do nothing
     }
     kInfo.event.preventDefault()

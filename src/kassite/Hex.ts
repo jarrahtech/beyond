@@ -1,4 +1,4 @@
-import * as BABYLON from 'babylonjs'
+import { Vector2, Vector3, DynamicTexture, type Texture, type Scene, Color3 } from '@babylonjs/core'
 import { drawTexture, type MeshMaterial } from './Util'
 import { root3 } from '../hex/Common'
 import { type OffsetCoord, RadiiCoord, type CoordSystem } from '../hex/Coords'
@@ -6,24 +6,24 @@ import { type SparseHexGrid } from '../hex/Grids'
 import { type Opt } from '../util/Opt'
 
 const defaultResolution = 512
-const hexRotateVector = new BABYLON.Vector3(1, 0, 0)
+const hexRotateVector = new Vector3(1, 0, 0)
 const hexRotateMagnitude = Math.PI / 2
 
-function toV3xzFlat (v: RadiiCoord): BABYLON.Vector3 { return new BABYLON.Vector3(v.x, 0, v.y) }
-function toV2xzFlat (v: BABYLON.Vector3): RadiiCoord { return new RadiiCoord(v.x, v.z) }
+function toV3xzFlat (v: RadiiCoord): Vector3 { return new Vector3(v.x, 0, v.y) }
+function toV2xzFlat (v: Vector3): RadiiCoord { return new RadiiCoord(v.x, v.z) }
 
-const flatTopHexPixelPoints = [new BABYLON.Vector2(0, root3 / 4.0), new BABYLON.Vector2(0.25, root3 / 2.0), new BABYLON.Vector2(0.75, root3 / 2.0), new BABYLON.Vector2(1, root3 / 4.0), new BABYLON.Vector2(0.75, 0), new BABYLON.Vector2(0.25, 0)]
-const pointyTopHexPixelPoints = [new BABYLON.Vector2(0, 0.25), new BABYLON.Vector2(0, 0.75), new BABYLON.Vector2(root3 / 4.0, 1), new BABYLON.Vector2(root3 / 2.0, 0.75), new BABYLON.Vector2(root3 / 2.0, 0.25), new BABYLON.Vector2(root3 / 4.0, 0)]
+const flatTopHexPixelPoints = [new Vector2(0, root3 / 4.0), new Vector2(0.25, root3 / 2.0), new Vector2(0.75, root3 / 2.0), new Vector2(1, root3 / 4.0), new Vector2(0.75, 0), new Vector2(0.25, 0)]
+const pointyTopHexPixelPoints = [new Vector2(0, 0.25), new Vector2(0, 0.75), new Vector2(root3 / 4.0, 1), new Vector2(root3 / 2.0, 0.75), new Vector2(root3 / 2.0, 0.25), new Vector2(root3 / 4.0, 0)]
 
-function drawHexOutline (scene: BABYLON.Scene | undefined, points: BABYLON.Vector2[], resolution: number): BABYLON.DynamicTexture {
-  const texture = new BABYLON.DynamicTexture('svgTexture', { width: resolution, height: resolution * root3 / 2.0 }, scene, true)
+function drawHexOutline (scene: Scene | undefined, points: Vector2[], resolution: number): DynamicTexture {
+  const texture = new DynamicTexture('svgTexture', { width: resolution, height: resolution * root3 / 2.0 }, scene, true)
 
   texture.hasAlpha = true
   const ctx = texture.getContext()
   ctx.beginPath()
   ctx.lineWidth = resolution / 32
   const mult = resolution - ctx.lineWidth * 2
-  const widthVec = new BABYLON.Vector2(ctx.lineWidth, ctx.lineWidth)
+  const widthVec = new Vector2(ctx.lineWidth, ctx.lineWidth)
   const pts = points.map((p) => p.scale(mult).addInPlace(widthVec))
   const last = pts[pts.length - 1]
   ctx.moveTo(last.x, last.y)
@@ -37,34 +37,34 @@ function drawHexOutline (scene: BABYLON.Scene | undefined, points: BABYLON.Vecto
 }
 
 export interface HexTextures {
-  outlineTexture: () => BABYLON.Texture
-  hexTexture: () => BABYLON.Texture
+  outlineTexture: () => Texture
+  hexTexture: () => Texture
 }
 
 export class FlatTopHexTextures implements HexTextures {
-  public readonly outline: BABYLON.Texture
-  public readonly hex: BABYLON.Texture
+  public readonly outline: Texture
+  public readonly hex: Texture
 
-  constructor (scene: BABYLON.Scene | undefined = undefined, resolution: number = defaultResolution) {
+  constructor (scene: Scene | undefined = undefined, resolution: number = defaultResolution) {
     this.outline = drawHexOutline(scene, flatTopHexPixelPoints, resolution)
     this.hex = drawHexOutline(scene, flatTopHexPixelPoints, resolution)
   }
 
-  outlineTexture (): BABYLON.Texture { return this.outline }
-  hexTexture (): BABYLON.Texture { return this.hex }
+  outlineTexture (): Texture { return this.outline }
+  hexTexture (): Texture { return this.hex }
 }
 
 export class PointyTopHexTextures implements HexTextures {
-  public readonly outline: BABYLON.Texture
-  public readonly hex: BABYLON.Texture
+  public readonly outline: Texture
+  public readonly hex: Texture
 
-  constructor (scene: BABYLON.Scene | undefined = undefined, resolution: number = defaultResolution) {
+  constructor (scene: Scene | undefined = undefined, resolution: number = defaultResolution) {
     this.outline = drawHexOutline(scene, pointyTopHexPixelPoints, resolution)
     this.hex = drawHexOutline(scene, pointyTopHexPixelPoints, resolution)
   }
 
-  outlineTexture (): BABYLON.Texture { return this.outline }
-  hexTexture (): BABYLON.Texture { return this.hex }
+  outlineTexture (): Texture { return this.outline }
+  hexTexture (): Texture { return this.hex }
 }
 
 export function defaultTextures (coords: CoordSystem): HexTextures {
@@ -78,19 +78,19 @@ export class SparseGridDisplay<M, D, C extends CoordSystem> {
     this.hexSize = { width: this.model.coords.hexRadiiWidth * hexRadius, length: this.model.coords.hexRadiiHeight * hexRadius }
   }
 
-  fromPixel (p: BABYLON.Vector3): OffsetCoord { return this.model.coords.fromRadii(toV2xzFlat(p.scaleInPlace(1 / this.hexRadius))) }
-  toPixel (c: OffsetCoord): BABYLON.Vector3 { return toV3xzFlat(this.model.coords.toRadii(c)).scaleInPlace(this.hexRadius) }
+  fromPixel (p: Vector3): OffsetCoord { return this.model.coords.fromRadii(toV2xzFlat(p.scaleInPlace(1 / this.hexRadius))) }
+  toPixel (c: OffsetCoord): Vector3 { return toV3xzFlat(this.model.coords.toRadii(c)).scaleInPlace(this.hexRadius) }
 
   get (coord: OffsetCoord): { model: Opt<M>, display: Opt<D> } { return { model: this.model.hexAt(coord), display: this.display.hexAt(coord) } }
 
-  drawOutline (scene: BABYLON.Scene, coord: OffsetCoord, opacity: number = 0.9, colour: BABYLON.Color3 = BABYLON.Color3.White()): MeshMaterial {
+  drawOutline (scene: Scene, coord: OffsetCoord, opacity: number = 0.9, colour: Color3 = Color3.White()): MeshMaterial {
     return this.drawAtCoord(scene, coord, this.textures.outlineTexture(), opacity, colour)
   }
 
   // TODO: drawHex
   // TODO: drawStamp
 
-  protected drawAtCoord (scene: BABYLON.Scene, coord: OffsetCoord, texture: BABYLON.Texture, opacity: number, colour: BABYLON.Color3): MeshMaterial {
+  protected drawAtCoord (scene: Scene, coord: OffsetCoord, texture: Texture, opacity: number, colour: Color3): MeshMaterial {
     const tex = drawTexture(scene, this.hexSize, texture)
     tex.mesh.rotate(hexRotateVector, hexRotateMagnitude)
     tex.mesh.position = this.toPixel(coord)

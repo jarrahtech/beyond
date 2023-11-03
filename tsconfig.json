@@ -1,5 +1,5 @@
 {
-  "compilerOptions": {
+  "compilerOptions": { // https://doc.babylonjs.com/guidedLearning/usingVite
     "target": "ES2022",
     "useDefineForClassFields": true,
     "module": "ESNext",
@@ -7,16 +7,21 @@
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
+    "noResolve": false,
+    "removeComments": true,
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "esModuleInterop": true,
 
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
     "noFallthroughCasesInSwitch": true
   },
   "types": [

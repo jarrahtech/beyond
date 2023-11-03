@@ -1,11 +1,11 @@
-import * as BABYLON from 'babylonjs'
+import { type TargetCamera, type ICameraInput, type Nullable, Vector3, type IWheelEvent } from '@babylonjs/core'
 import { OnceInputControl, PressInputControl, type ControlManager } from './InputControl'
 import * as Inputs from './Inputs'
 import { clamp } from '../util/Math'
 
-export class RTSCameraMouseKeyboardInput<TCamera extends BABYLON.TargetCamera> implements BABYLON.ICameraInput<TCamera> {
-  camera: BABYLON.Nullable<TCamera> = null
-  delta = BABYLON.Vector3.Zero()
+export class RTSCameraMouseKeyboardInput<TCamera extends TargetCamera> implements ICameraInput<TCamera> {
+  camera: Nullable<TCamera> = null
+  delta = Vector3.Zero()
 
   getClassName (): string { return 'RTSCameraMouseKeyboardInput' }
   getSimpleName (): string { return 'mouse_keyboard' }
@@ -14,8 +14,8 @@ export class RTSCameraMouseKeyboardInput<TCamera extends BABYLON.TargetCamera> i
   checkInputs (): void { this.camera?.position.addInPlace(this.delta) }
 }
 
-export class RTSCameraMouseWheelInput<TCamera extends BABYLON.TargetCamera> implements BABYLON.ICameraInput<TCamera> {
-  camera: BABYLON.Nullable<TCamera> = null
+export class RTSCameraMouseWheelInput<TCamera extends TargetCamera> implements ICameraInput<TCamera> {
+  camera: Nullable<TCamera> = null
   step: number
   speed: number
   max: number
@@ -54,7 +54,7 @@ export const rtsUp = 'rtsCamera_up'
 export const rtsDown = 'rtsCamera_down'
 export const rtsInOut = 'rtsCamera_inOut'
 
-export function setupRtsCamera<T extends BABYLON.TargetCamera> (cam: T, ctrls: ControlManager): void {
+export function setupRtsCamera<T extends TargetCamera> (cam: T, ctrls: ControlManager): void {
   cam.inputs.clear()
 
   const mouseKeyboardCtrl = new RTSCameraMouseKeyboardInput<T>()
@@ -63,7 +63,7 @@ export function setupRtsCamera<T extends BABYLON.TargetCamera> (cam: T, ctrls: C
   left.onStart.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(-cam.speed, 0, 0))
   left.onEnd.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(cam.speed, 0, 0))
 
-  const right = ctrls.getOrCreate(new OnceInputControl(rtsRight), Inputs.s, Inputs.arrowRight)
+  const right = ctrls.getOrCreate(new OnceInputControl(rtsRight), Inputs.d, Inputs.arrowRight)
   right.onStart.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(cam.speed, 0, 0))
   right.onEnd.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(-cam.speed, 0, 0))
 
@@ -77,7 +77,7 @@ export function setupRtsCamera<T extends BABYLON.TargetCamera> (cam: T, ctrls: C
 
   const wheelCtrl = new RTSCameraMouseWheelInput<T>()
   const inOut = ctrls.getOrCreate(new PressInputControl(rtsInOut), Inputs.mouseWheel)
-  inOut.onStart.add((e, _) => { wheelCtrl.wheelDeltaY -= (e.event as BABYLON.IWheelEvent)?.deltaY })
+  inOut.onStart.add((e, _) => { wheelCtrl.wheelDeltaY -= (e.event as IWheelEvent)?.deltaY })
 
   cam.inputs.add(mouseKeyboardCtrl)
   cam.inputs.add(wheelCtrl)

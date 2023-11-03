@@ -1,31 +1,32 @@
-import * as BABYLON from 'babylonjs'
+import { Scene, FreeCamera, Engine, Vector3, HemisphericLight } from '@babylonjs/core'
+// import { Inspector } from '@babylonjs/inspector'
 import { setupRtsCamera } from './kassite/RtsCamera'
 import { ControlManager } from './kassite/InputControl'
 import { basicSkybox } from './kassite/Util'
 import { BeyondGrid } from './grid'
 import { OffsetCoord } from './hex/Coords'
-import * as Scenario from './entity'
+import { ScenarioDef, EntityDef } from './entity'
 
-const scenario = new Scenario.Def([
-  new Scenario.Entity('HeavyDestroyer', 'Blue', ['Engine', 'Pilot'], OffsetCoord.zero),
-  new Scenario.Entity('HeavyDestroyer', 'Red', ['Widget'], new OffsetCoord(3, 3)),
-  new Scenario.Entity('HeavyDestroyer', 'Blue', [])
+const scenario = new ScenarioDef([
+  new EntityDef('HeavyDestroyer', 'Blue', ['Engine', 'Pilot'], OffsetCoord.zero),
+  new EntityDef('HeavyDestroyer', 'Red', ['Widget'], new OffsetCoord(3, 3)),
+  new EntityDef('HeavyDestroyer', 'Blue', [])
 ])
 console.log(scenario)
 
-const createScene = function (): { scene: BABYLON.Scene, camera: BABYLON.FreeCamera } { // TODO: -> utils
+const createScene = function (): { scene: Scene, camera: FreeCamera } { // TODO: -> utils
   const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement
-  const engine = new BABYLON.Engine(canvas, true)
+  const engine = new Engine(canvas, true)
   engine.setHardwareScalingLevel(1 / window.devicePixelRatio)
   window.addEventListener('resize', _ => { engine.resize() })
   window.addEventListener('load', _ => { engine.resize() })
   engine.runRenderLoop(() => { ctx.scene.render() })
   window.addEventListener('resize', function () { engine.resize() })
 
-  const scene = new BABYLON.Scene(engine)
+  const scene = new Scene(engine)
   scene.useRightHandedSystem = true // to match Blender
-  const camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 10, -4), scene)
-  camera.setTarget(BABYLON.Vector3.Zero())
+  const camera = new FreeCamera('camera1', new Vector3(0, 10, -4), scene)
+  camera.setTarget(Vector3.Zero())
   camera.speed = 0.2
   camera.fov = 1.0
 
@@ -34,7 +35,7 @@ const createScene = function (): { scene: BABYLON.Scene, camera: BABYLON.FreeCam
   ctrls.attach(scene)
 
   basicSkybox(scene, `${import.meta.env.BASE_URL ?? '/'}skybox/green_nebula/green-nebula`, 1000)
-  const light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene)
+  const light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene)
   light.intensity = 1
   // let sphere = BABYLON.MeshBuilder.CreateSphere('sphere1', { segments: 16,  diameter: 2}, scene);
   // sphere.position.y = 1;
@@ -46,3 +47,5 @@ const ctx = createScene()
 
 const grid = BeyondGrid.empty(0.75)
 grid.drawOutline(ctx.scene, OffsetCoord.zero)
+
+// Inspector.Show(ctx.scene, {})

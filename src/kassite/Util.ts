@@ -1,35 +1,35 @@
-import * as BABYLON from 'babylonjs'
+import { Vector2, Vector3, StandardMaterial, MeshBuilder, CubeTexture, Color3, Texture, type Mesh, type Scene } from '@babylonjs/core'
 import { lerp } from '../util/Interp'
 import { type ParameterisedShaderMaterial } from './shader/ParameterisedShaderMaterial'
 import { unlitTransparent } from './shader/Shaders'
 
-export function vector2lerp (v: number, a: BABYLON.Vector2, b: BABYLON.Vector2): BABYLON.Vector2 {
-  return new BABYLON.Vector2(lerp(v, a.x, b.x), lerp(v, a.y, b.y))
+export function vector2lerp (v: number, a: Vector2, b: Vector2): Vector2 {
+  return new Vector2(lerp(v, a.x, b.x), lerp(v, a.y, b.y))
 }
-export function vector3lerp (v: number, a: BABYLON.Vector3, b: BABYLON.Vector3): BABYLON.Vector3 {
-  return new BABYLON.Vector3(lerp(v, a.x, b.x), lerp(v, a.y, b.y), lerp(v, a.z, b.z))
+export function vector3lerp (v: number, a: Vector3, b: Vector3): Vector3 {
+  return new Vector3(lerp(v, a.x, b.x), lerp(v, a.y, b.y), lerp(v, a.z, b.z))
 }
-export function color3lerp (v: number, a: BABYLON.Color3, b: BABYLON.Color3): BABYLON.Color3 {
-  return new BABYLON.Color3(lerp(v, a.r, b.r), lerp(v, a.g, b.g), lerp(v, a.b, b.b))
+export function color3lerp (v: number, a: Color3, b: Color3): Color3 {
+  return new Color3(lerp(v, a.r, b.r), lerp(v, a.g, b.g), lerp(v, a.b, b.b))
 }
 
-export function basicSkybox (scene: BABYLON.Scene, imagesUrl: string, size: number): void {
+export function basicSkybox (scene: Scene, imagesUrl: string, size: number): void {
   // see https://doc.babylonjs.com/features/featuresDeepDive/environment/skybox
   // or alternative method https://playground.babylonjs.com/#UXGCPG
-  const skybox = BABYLON.MeshBuilder.CreateBox('skyBox', { size }, scene)
-  const skyboxMaterial = new BABYLON.StandardMaterial('skyBox', scene)
+  const skybox = MeshBuilder.CreateBox('skyBox', { size }, scene)
+  const skyboxMaterial = new StandardMaterial('skyBox', scene)
   skyboxMaterial.backFaceCulling = false
-  skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(imagesUrl, scene)
-  skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE
-  skyboxMaterial.specularColor = skyboxMaterial.diffuseColor = BABYLON.Color3.Black()
+  skyboxMaterial.reflectionTexture = new CubeTexture(imagesUrl, scene)
+  skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE
+  skyboxMaterial.specularColor = skyboxMaterial.diffuseColor = Color3.Black()
   skybox.material = skyboxMaterial
   skybox.isPickable = false
 }
 
-export interface MeshMaterial { mesh: BABYLON.Mesh, material: ParameterisedShaderMaterial }
+export interface MeshMaterial { mesh: Mesh, material: ParameterisedShaderMaterial }
 
-export function drawTexture (scene: BABYLON.Scene, size: { width: number, length: number }, texture: BABYLON.Texture): MeshMaterial {
-  const plane = BABYLON.MeshBuilder.CreatePlane('plane', size, scene)
+export function drawTexture (scene: Scene, size: { width: number, length: number }, texture: Texture): MeshMaterial {
+  const plane = MeshBuilder.CreatePlane('plane', size, scene)
   const material = unlitTransparent().toMaterial(scene)
   material.setTexture('tex', texture)
   material.setFloat('opacity', 0.9)

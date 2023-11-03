@@ -11,6 +11,9 @@
     "build": "vite build"
   },
   "devDependencies": {
+    "@babylonjs/core": "^6.28.0",
+    "@babylonjs/gui": "^6.28.0",
+    "@babylonjs/inspector": "^6.28.0",
     "@types/jest": "^29.5.3",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "eslint": "^8.52.0",
@@ -23,9 +26,5 @@
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
     "vite": "^4.4.5"
-  },
-  "dependencies": {
-    "babylonjs": "^6.16.2",
-    "babylonjs-gui": "^6.16.2"
   }
 }

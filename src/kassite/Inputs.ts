@@ -1,4 +1,4 @@
-import type * as BABYLON from 'babylonjs'
+import { type IKeyboardEvent, type IMouseEvent } from '@babylonjs/core'
 
 let count = 0
 export const emptyPrefix = 'empty'
@@ -11,10 +11,10 @@ export function pointerButton (button: number, alt: boolean = false, ctrl: boole
 export function pointerPosition (alt: boolean = false, ctrl: boolean = false, meta: boolean = false, shift: boolean = false): string { return `pointerPosition_${modifierKey(alt, ctrl, meta, shift)}` }
 export function wheel (alt: boolean = false, ctrl: boolean = false, meta: boolean = false, shift: boolean = false): string { return `wheel_${modifierKey(alt, ctrl, meta, shift)}` }
 
-export function fromKeyboard (ev: BABYLON.IKeyboardEvent): string { return keyboard(ev.key, ev.altKey, ev.ctrlKey, ev.metaKey, ev.shiftKey) }
-export function fromButton (ev: BABYLON.IMouseEvent): string { return pointerButton(ev.button, ev.altKey, ev.ctrlKey, ev.metaKey, ev.shiftKey) }
-export function fromPosition (ev: BABYLON.IMouseEvent): string { return pointerPosition(ev.altKey, ev.ctrlKey, ev.metaKey, ev.shiftKey) }
-export function fromWheel (ev: BABYLON.IMouseEvent): string { return wheel(ev.altKey, ev.ctrlKey, ev.metaKey, ev.shiftKey) }
+export function fromKeyboard (ev: IKeyboardEvent): string { return keyboard(ev.key, ev.altKey, ev.ctrlKey, ev.metaKey, ev.shiftKey) }
+export function fromButton (ev: IMouseEvent): string { return pointerButton(ev.button, ev.altKey, ev.ctrlKey, ev.metaKey, ev.shiftKey) }
+export function fromPosition (ev: IMouseEvent): string { return pointerPosition(ev.altKey, ev.ctrlKey, ev.metaKey, ev.shiftKey) }
+export function fromWheel (ev: IMouseEvent): string { return wheel(ev.altKey, ev.ctrlKey, ev.metaKey, ev.shiftKey) }
 
 export const a = keyboard('a')
 export const b = keyboard('b')

@@ -1,27 +1,26 @@
-import type * as BABYLON from 'babylonjs'
+import { type AbstractMesh } from '@babylonjs/core'
 import { type OffsetCoord } from './hex/Coords'
 
-export class Def {
-  constructor (public entities: Entity[]) {}
-  // def loadTo(scene: BABYLON.Scene): Future[Scenario] = ???
+export class ScenarioDef {
+  constructor (public entities: EntityDef[]) {}
+  // def loadTo(scene: Scene): Future[Scenario] = ???
 }
 
-export class Entity {
+export class EntityDef {
   constructor (public entity: string, public colour: string, public cards: string[], public pos?: OffsetCoord) { }
-
-  /*
-  loadTo (scene: BABYLON.Scene) {
+/*
+  loadTo (scene: Scene) {
     const p = new Promise<Entity>()
-    const mat = new BABYLON.StandardMaterial('mat', scene)
-    const folder = `${BuildInfo.baseUrl.trim()}entity/${this.entity}/`
+    const mat = new StandardMaterial('mat', scene)
+    const folder = `${import.meta.env.BASE_URL.trim()}entity/${this.entity}/`
     const textureFolder = `${folder}512/${this.entity}`
     mat.specularPower = 200
-    mat.ambientTexture = new BABYLON.Texture(`${textureFolder}AO.png`, scene)
-    mat.diffuseTexture = new BABYLON.Texture(`${textureFolder}${this.colour}AlbedoAO.png`, scene)
-    mat.specularTexture = new BABYLON.Texture(`${textureFolder}PBRSpecular.png`, scene)
-    mat.emissiveTexture = new BABYLON.Texture(`${textureFolder}Illumination.png`, scene)
-    mat.bumpTexture = new BABYLON.Texture(`${textureFolder}Normal.png`, scene)
-    return BABYLON.SceneLoader.ImportMesh(`${this.entity}.1`, folder, `${this.entity}Hull.glb`, scene, (meshes) => {
+    mat.ambientTexture = new Texture(`${textureFolder}AO.png`, scene)
+    mat.diffuseTexture = new Texture(`${textureFolder}${this.colour}AlbedoAO.png`, scene)
+    mat.specularTexture = new Texture(`${textureFolder}PBRSpecular.png`, scene)
+    mat.emissiveTexture = new Texture(`${textureFolder}Illumination.png`, scene)
+    mat.bumpTexture = new Texture(`${textureFolder}Normal.png`, scene)
+    return SceneLoader.ImportMesh(`${this.entity}.1`, folder, `${this.entity}Hull.glb`, scene, (meshes) => {
       meshes[1].material = mat
       const e = new EntityDisplay(meshes[0], this.cards)
       e.position(this.pos)
@@ -32,7 +31,7 @@ export class Entity {
 }
 
 export class EntityDisplay {
-  constructor (public mesh: BABYLON.AbstractMesh, public cards: string[]) { }
+  constructor (public mesh: AbstractMesh, public cards: string[]) { }
   pos?: OffsetCoord = undefined
 
   position (np?: OffsetCoord): void { this.pos = np; this.display() }
