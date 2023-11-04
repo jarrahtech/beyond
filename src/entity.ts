@@ -1,33 +1,52 @@
-import { type AbstractMesh } from '@babylonjs/core'
+import { type AbstractMesh, StandardMaterial, Texture, type Scene, type Material, type AssetsManager, type MeshAssetTask, type AbstractAssetTask } from '@babylonjs/core'
 import { type OffsetCoord } from './hex/Coords'
+
+import '@babylonjs/loaders/glTF'
 
 export class ScenarioDef {
   constructor (public entities: EntityDef[]) {}
-  // def loadTo(scene: Scene): Future[Scenario] = ???
+  loadTo (mgr: AssetsManager): AbstractAssetTask[] {
+    // TODO: combine duplicates
+    const result: AbstractAssetTask[] = []
+    this.entities.forEach((e) => result.push(e.loadTo(mgr)))
+    return result
+  }
 }
 
 export class EntityDef {
-  constructor (public entity: string, public colour: string, public cards: string[], public pos?: OffsetCoord) { }
-/*
-  loadTo (scene: Scene) {
-    const p = new Promise<Entity>()
+  private readonly folder: string
+  constructor (public entity: string, public colour: string, public cards: string[], public pos?: OffsetCoord) {
+    this.folder = `${import.meta.env.BASE_URL.trim()}entity/${this.entity}/`
+  }
+
+  constructMaterial (scene: Scene): Material {
     const mat = new StandardMaterial('mat', scene)
-    const folder = `${import.meta.env.BASE_URL.trim()}entity/${this.entity}/`
-    const textureFolder = `${folder}512/${this.entity}`
+    const textureFolder = `${this.folder}512/${this.entity}`
     mat.specularPower = 200
+    // TODO: load this async too?
     mat.ambientTexture = new Texture(`${textureFolder}AO.png`, scene)
     mat.diffuseTexture = new Texture(`${textureFolder}${this.colour}AlbedoAO.png`, scene)
     mat.specularTexture = new Texture(`${textureFolder}PBRSpecular.png`, scene)
     mat.emissiveTexture = new Texture(`${textureFolder}Illumination.png`, scene)
     mat.bumpTexture = new Texture(`${textureFolder}Normal.png`, scene)
-    return SceneLoader.ImportMesh(`${this.entity}.1`, folder, `${this.entity}Hull.glb`, scene, (meshes) => {
-      meshes[1].material = mat
-      const e = new EntityDisplay(meshes[0], this.cards)
-      e.position(this.pos)
-      p.success(e)
-    }, {}, {}, {}, this.entity)
+    return mat
   }
-  */
+
+  loadTo (mgr: AssetsManager): MeshAssetTask {
+    const task = mgr.addMeshTask(this.entity, `${this.entity}.1`, this.folder, `${this.entity}Hull.glb`)
+    task.onSuccess = this.completeLoad.bind(this)
+    // TODO: handle errors
+    // TODO: handle progress
+    // TODO: how to know when all loaded
+    return task
+  }
+
+  completeLoad (task: MeshAssetTask): void {
+    task.loadedMeshes[1].material = this.constructMaterial(task.loadedMeshes[1]._scene)
+    const e = new EntityDisplay(task.loadedMeshes[0], this.cards)
+    e.mesh.scaling.scaleInPlace(0.03)
+    // TODO: store somewhere
+  }
 }
 
 export class EntityDisplay {
@@ -35,7 +54,5 @@ export class EntityDisplay {
   pos?: OffsetCoord = undefined
 
   position (np?: OffsetCoord): void { this.pos = np; this.display() }
-  display (): void {
-    if (this.pos === undefined) { this.mesh.scaling.scaleInPlace(0) } else { this.mesh.scaling.scaleInPlace(0.03) }
-  }
+  display (): void { this.mesh.setEnabled(this.pos !== undefined) }
 }

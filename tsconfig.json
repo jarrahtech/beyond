@@ -27,6 +27,7 @@
   "types": [
     "babylonjs",
     "babylonjs-gui",
+    "babylonjs-loaders",
     "jest"
   ],
   "include": ["src", "tests"]

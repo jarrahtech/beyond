@@ -1,4 +1,4 @@
-import { Scene, FreeCamera, Engine, Vector3, HemisphericLight } from '@babylonjs/core'
+import { Scene, FreeCamera, Engine, Vector3, HemisphericLight, AssetsManager } from '@babylonjs/core'
 // import { Inspector } from '@babylonjs/inspector'
 import { setupRtsCamera } from './kassite/RtsCamera'
 import { ControlManager } from './kassite/InputControl'
@@ -12,7 +12,6 @@ const scenario = new ScenarioDef([
   new EntityDef('HeavyDestroyer', 'Red', ['Widget'], new OffsetCoord(3, 3)),
   new EntityDef('HeavyDestroyer', 'Blue', [])
 ])
-console.log(scenario)
 
 const createScene = function (): { scene: Scene, camera: FreeCamera } { // TODO: -> utils
   const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement
@@ -46,6 +45,10 @@ const createScene = function (): { scene: Scene, camera: FreeCamera } { // TODO:
 const ctx = createScene()
 
 const grid = BeyondGrid.empty(0.75)
+const loader = new AssetsManager(ctx.scene)
+scenario.loadTo(loader)
+loader.load()
+
 grid.drawOutline(ctx.scene, OffsetCoord.zero)
 
 // Inspector.Show(ctx.scene, {})
