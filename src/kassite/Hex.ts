@@ -1,5 +1,5 @@
 import { Vector2, Vector3, DynamicTexture, type Texture, type Scene, Color3 } from '@babylonjs/core'
-import { drawTexture, type MeshMaterial } from './Util'
+import { drawControlTexture, type MeshMaterial } from './Util'
 import { root3 } from '../hex/Common'
 import { type OffsetCoord, RadiiCoord, type CoordSystem } from '../hex/Coords'
 import { type SparseHexGrid } from '../hex/Grids'
@@ -91,7 +91,7 @@ export class SparseGridDisplay<M, D, C extends CoordSystem> {
   // TODO: drawStamp
 
   protected drawAtCoord (scene: Scene, coord: OffsetCoord, texture: Texture, opacity: number, colour: Color3): MeshMaterial {
-    const tex = drawTexture(scene, this.hexSize, texture)
+    const tex = drawControlTexture(scene, this.hexSize, texture) // TODO: should this be hardcoded?
     tex.mesh.rotate(hexRotateVector, hexRotateMagnitude)
     tex.mesh.position = this.toPixel(coord)
     tex.material.setFloat('opacity', opacity)

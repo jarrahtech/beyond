@@ -1,7 +1,7 @@
-import { Vector2, Vector3, StandardMaterial, MeshBuilder, CubeTexture, Color3, Texture, type Mesh, type Scene } from '@babylonjs/core'
-import { lerp } from '../util/Interp'
+import { type Scene, Vector2, Vector3, type Mesh, StandardMaterial, MeshBuilder, CubeTexture, Color3, Texture } from '@babylonjs/core'
 import { type ParameterisedShaderMaterial } from './shader/ParameterisedShaderMaterial'
 import { unlitTransparent } from './shader/Shaders'
+import { lerp } from '../util/Interp'
 
 export function vector2lerp (v: number, a: Vector2, b: Vector2): Vector2 {
   return new Vector2(lerp(v, a.x, b.x), lerp(v, a.y, b.y))
@@ -28,12 +28,12 @@ export function basicSkybox (scene: Scene, imagesUrl: string, size: number): voi
 
 export interface MeshMaterial { mesh: Mesh, material: ParameterisedShaderMaterial }
 
-export function drawTexture (scene: Scene, size: { width: number, length: number }, texture: Texture): MeshMaterial {
-  const plane = MeshBuilder.CreatePlane('plane', size, scene)
+export function drawControlTexture (scene: Scene, size: { width: number, length: number }, texture: Texture): MeshMaterial {
+  const mesh = MeshBuilder.CreatePlane('plane', size, scene)
   const material = unlitTransparent().toMaterial(scene)
   material.setTexture('tex', texture)
   material.setFloat('opacity', 0.9)
   material.alpha = 0.9
-  plane.material = material
-  return { mesh: plane, material }
+  mesh.material = material
+  return { mesh, material }
 }

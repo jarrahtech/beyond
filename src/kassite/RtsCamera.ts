@@ -68,12 +68,12 @@ export function setupRtsCamera<T extends TargetCamera> (cam: T, ctrls: ControlMa
   right.onEnd.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(-cam.speed, 0, 0))
 
   const up = ctrls.getOrCreate(new OnceInputControl(rtsUp), Inputs.w, Inputs.arrowUp)
-  up.onStart.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(0, 0, cam.speed))
-  up.onEnd.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(0, 0, -cam.speed))
+  up.onStart.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(0, 0, -cam.speed))
+  up.onEnd.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(0, 0, cam.speed))
 
   const down = ctrls.getOrCreate(new OnceInputControl(rtsDown), Inputs.s, Inputs.arrowDown)
-  down.onStart.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(0, 0, -cam.speed))
-  down.onEnd.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(0, 0, cam.speed))
+  down.onStart.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(0, 0, cam.speed))
+  down.onEnd.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(0, 0, -cam.speed))
 
   const wheelCtrl = new RTSCameraMouseWheelInput<T>()
   const inOut = ctrls.getOrCreate(new PressInputControl(rtsInOut), Inputs.mouseWheel)
