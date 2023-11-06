@@ -1,9 +1,11 @@
-import { type TargetCamera, type ICameraInput, type Nullable, Vector3, type IWheelEvent } from '@babylonjs/core'
+import { type TargetCamera, type ICameraInput, type Nullable, Vector3, type IWheelEvent, Tools } from '@babylonjs/core'
 import { OnceInputControl, PressInputControl, type ControlManager } from './InputControl'
 import * as Inputs from './Inputs'
 import { clamp } from '../util/Math'
 
-export class RTSCameraMouseKeyboardInput<TCamera extends TargetCamera> implements ICameraInput<TCamera> {
+// https:// playground.babylonjs.com/#8SZ28Q#6
+
+class RTSCameraMouseKeyboardInput<TCamera extends TargetCamera> implements ICameraInput<TCamera> {
   camera: Nullable<TCamera> = null
   delta = Vector3.Zero()
 
@@ -14,7 +16,31 @@ export class RTSCameraMouseKeyboardInput<TCamera extends TargetCamera> implement
   checkInputs (): void { this.camera?.position.addInPlace(this.delta) }
 }
 
-export class RTSCameraMouseWheelInput<TCamera extends TargetCamera> implements ICameraInput<TCamera> {
+class RTSCameraRotateInput<TCamera extends TargetCamera> implements ICameraInput<TCamera> {
+  camera: Nullable<TCamera> = null
+  rotationSpeed = 0
+  radius: number | undefined = undefined
+  rotation: number | undefined = undefined
+
+  getClassName (): string { return 'RTSCameraRotateInput' }
+  getSimpleName (): string { return 'rotate' }
+  attachControl (_: boolean): void { }
+  detachControl (): void { }
+  checkInputs (): void {
+    if (this.rotationSpeed !== 0 && this.camera !== null) {
+      const rad = this.radius ?? (this.radius = Math.sqrt(Math.pow(this.camera.position.x - this.camera.target.x, 2) + Math.pow(this.camera.position.z - this.camera.target.z, 2)))
+      this.rotation = (this.rotation ?? (this.rotation = Tools.ToRadians(180) + this.camera.rotation.y)) + this.rotationSpeed
+      const tx = this.camera.target.x
+      const tz = this.camera.target.z
+      const x = tx + rad * Math.sin(this.rotation)
+      const z = tz + rad * Math.cos(this.rotation)
+      this.camera.position = new Vector3(x, this.camera.position.y, z)
+      this.camera.setTarget(new Vector3(tx, 0, tz))
+    }
+  }
+}
+
+class RTSCameraMouseWheelInput<TCamera extends TargetCamera> implements ICameraInput<TCamera> {
   camera: Nullable<TCamera> = null
   step: number
   speed: number
@@ -53,6 +79,8 @@ export const rtsRight = 'rtsCamera_right'
 export const rtsUp = 'rtsCamera_up'
 export const rtsDown = 'rtsCamera_down'
 export const rtsInOut = 'rtsCamera_inOut'
+export const rtsClockwise = 'rtsCamera_clockwise'
+export const rtsAnticlockwose = 'rtsCamera_anticlockwise'
 
 export function setupRtsCamera<T extends TargetCamera> (cam: T, ctrls: ControlManager): void {
   cam.inputs.clear()
@@ -75,10 +103,19 @@ export function setupRtsCamera<T extends TargetCamera> (cam: T, ctrls: ControlMa
   down.onStart.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(0, 0, cam.speed))
   down.onEnd.add(_ => mouseKeyboardCtrl.delta.addInPlaceFromFloats(0, 0, -cam.speed))
 
+  const rotateControl = new RTSCameraRotateInput<T>()
+  const clockwise = ctrls.getOrCreate(new OnceInputControl(rtsClockwise), Inputs.e)
+  clockwise.onStart.add(_ => { rotateControl.rotationSpeed -= 0.02 })
+  clockwise.onEnd.add(_ => { rotateControl.rotationSpeed += 0.02 })
+  const anticlockwise = ctrls.getOrCreate(new OnceInputControl(rtsAnticlockwose), Inputs.q)
+  anticlockwise.onStart.add(_ => { rotateControl.rotationSpeed += 0.02 })
+  anticlockwise.onEnd.add(_ => { rotateControl.rotationSpeed -= 0.02 })
+
   const wheelCtrl = new RTSCameraMouseWheelInput<T>()
   const inOut = ctrls.getOrCreate(new PressInputControl(rtsInOut), Inputs.mouseWheel)
   inOut.onStart.add((e, _) => { wheelCtrl.wheelDeltaY -= (e.event as IWheelEvent)?.deltaY })
 
   cam.inputs.add(mouseKeyboardCtrl)
+  cam.inputs.add(rotateControl)
   cam.inputs.add(wheelCtrl)
 }

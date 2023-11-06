@@ -21,14 +21,14 @@ export class EntityDef {
 
   constructMaterial (scene: Scene): Material {
     const mat = new StandardMaterial('mat', scene)
-    const textureFolder = `${this.folder}512/${this.entity}`
+    const textureFolder = `${this.folder}/${this.entity}`
     mat.specularPower = 200
     // TODO: load this async too?
-    mat.ambientTexture = new Texture(`${textureFolder}AO.png`, scene, undefined, false)
+    // mat.ambientTexture = new Texture(`${textureFolder}AO.png`, scene, undefined, false)
     mat.diffuseTexture = new Texture(`${textureFolder}${this.colour}AlbedoAO.png`, scene, undefined, false)
-    mat.specularTexture = new Texture(`${textureFolder}PBRSpecular.png`, scene, undefined, false)
-    mat.emissiveTexture = new Texture(`${textureFolder}Illumination.png`, scene, undefined, false)
-    mat.bumpTexture = new Texture(`${textureFolder}Normal.png`, scene, undefined, false)
+    // mat.specularTexture = new Texture(`${textureFolder}PBRSpecular.png`, scene, undefined, false)
+    // mat.emissiveTexture = new Texture(`${textureFolder}Illumination.png`, scene, undefined, false)
+    // mat.bumpTexture = new Texture(`${textureFolder}Normal.png`, scene, undefined, false)
     return mat
   }
 

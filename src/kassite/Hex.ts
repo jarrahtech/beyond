@@ -15,23 +15,27 @@ function toV2xzFlat (v: Vector3): RadiiCoord { return new RadiiCoord(v.x, v.z) }
 const flatTopHexPixelPoints = [new Vector2(0, root3 / 4.0), new Vector2(0.25, root3 / 2.0), new Vector2(0.75, root3 / 2.0), new Vector2(1, root3 / 4.0), new Vector2(0.75, 0), new Vector2(0.25, 0)]
 const pointyTopHexPixelPoints = [new Vector2(0, 0.25), new Vector2(0, 0.75), new Vector2(root3 / 4.0, 1), new Vector2(root3 / 2.0, 0.75), new Vector2(root3 / 2.0, 0.25), new Vector2(root3 / 4.0, 0)]
 
-function drawHexOutline (scene: Scene | undefined, points: Vector2[], resolution: number): DynamicTexture {
+function drawHex (scene: Scene | undefined, points: Vector2[], resolution: number, fill: boolean): DynamicTexture {
   const texture = new DynamicTexture('svgTexture', { width: resolution, height: resolution * root3 / 2.0 }, scene, true)
 
   texture.hasAlpha = true
   const ctx = texture.getContext()
   ctx.beginPath()
   ctx.lineWidth = resolution / 32
-  const mult = resolution - ctx.lineWidth * 2
-  const widthVec = new Vector2(ctx.lineWidth, ctx.lineWidth)
+  const mult = resolution - ctx.lineWidth * (fill ? 4 : 2)
+  const widthVec = new Vector2(ctx.lineWidth, ctx.lineWidth).scaleInPlace(fill ? 2 : 1)
   const pts = points.map((p) => p.scale(mult).addInPlace(widthVec))
   const last = pts[pts.length - 1]
   ctx.moveTo(last.x, last.y)
   pts.forEach((p) => { ctx.lineTo(p.x, p.y) })
-  const wrap = last.addInPlace(pts[0].subtract(pts[0]).scaleInPlace(0.1))
+  const wrap = last.addInPlace(pts[0].subtract(pts[pts.length - 1]).scaleInPlace(0.1))
   ctx.lineTo(wrap.x, wrap.y)
   ctx.strokeStyle = 'white'
   ctx.stroke()
+  if (fill) {
+    ctx.fillStyle = 'white'
+    ctx.fill()
+  }
   texture.update()
   return texture
 }
@@ -46,8 +50,8 @@ export class FlatTopHexTextures implements HexTextures {
   public readonly hex: Texture
 
   constructor (scene: Scene | undefined = undefined, resolution: number = defaultResolution) {
-    this.outline = drawHexOutline(scene, flatTopHexPixelPoints, resolution)
-    this.hex = drawHexOutline(scene, flatTopHexPixelPoints, resolution)
+    this.outline = drawHex(scene, flatTopHexPixelPoints, resolution, false)
+    this.hex = drawHex(scene, flatTopHexPixelPoints, resolution, true)
   }
 
   outlineTexture (): Texture { return this.outline }
@@ -59,8 +63,8 @@ export class PointyTopHexTextures implements HexTextures {
   public readonly hex: Texture
 
   constructor (scene: Scene | undefined = undefined, resolution: number = defaultResolution) {
-    this.outline = drawHexOutline(scene, pointyTopHexPixelPoints, resolution)
-    this.hex = drawHexOutline(scene, pointyTopHexPixelPoints, resolution)
+    this.outline = drawHex(scene, pointyTopHexPixelPoints, resolution, false)
+    this.hex = drawHex(scene, pointyTopHexPixelPoints, resolution, true)
   }
 
   outlineTexture (): Texture { return this.outline }
