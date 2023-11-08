@@ -1,5 +1,5 @@
 import { SparseGridDisplay, defaultTextures } from './kassite/Hex'
-import { evenHorizontalCoords, type EvenHorizontalCoordSystem } from './hex/Coords'
+import { evenHorizontalCoords, type EvenHorizontalCoordSystem, type OffsetCoord } from './hex/Coords'
 import { SparseHexGrid } from './hex/Grids'
 
 export class HexModel {
@@ -18,7 +18,12 @@ export class HexDisplay {
 export class BeyondGrid extends SparseGridDisplay<HexModel, HexDisplay, EvenHorizontalCoordSystem> {
   static empty (hexRadius: number): BeyondGrid {
     const coords = evenHorizontalCoords
-    return new SparseGridDisplay(SparseHexGrid.empty<HexModel, EvenHorizontalCoordSystem>(coords), SparseHexGrid.empty<HexDisplay, EvenHorizontalCoordSystem>(coords), hexRadius, defaultTextures(coords))
+    return new BeyondGrid(SparseHexGrid.empty<HexModel, EvenHorizontalCoordSystem>(coords), SparseHexGrid.empty<HexDisplay, EvenHorizontalCoordSystem>(coords), hexRadius, defaultTextures(coords))
+  }
+
+  add (m: HexModel, d: HexDisplay, coord: OffsetCoord): void {
+    this.model.set(coord, m)
+    this.display.set(coord, d)
   }
 
   /*

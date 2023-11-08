@@ -1,14 +1,15 @@
 import { type AbstractMesh, StandardMaterial, Texture, type Scene, type Material, type AssetsManager, type MeshAssetTask, type AbstractAssetTask } from '@babylonjs/core'
 import { type OffsetCoord } from './hex/Coords'
+import { type BeyondGrid, HexDisplay, HexModel } from './grid'
 
 import '@babylonjs/loaders/glTF'
 
 export class ScenarioDef {
   constructor (public entities: EntityDef[]) {}
-  loadTo (mgr: AssetsManager): AbstractAssetTask[] {
+  loadTo (grid: BeyondGrid, mgr: AssetsManager): AbstractAssetTask[] {
     // TODO: combine duplicates
     const result: AbstractAssetTask[] = []
-    this.entities.forEach((e) => result.push(e.loadTo(mgr)))
+    this.entities.forEach((e) => result.push(e.loadTo(grid, mgr)))
     return result
   }
 }
@@ -32,25 +33,30 @@ export class EntityDef {
     return mat
   }
 
-  loadTo (mgr: AssetsManager): MeshAssetTask {
+  loadTo (grid: BeyondGrid, mgr: AssetsManager): MeshAssetTask {
     const task = mgr.addMeshTask(this.entity, `${this.entity}.1`, this.folder, `${this.entity}Hull.glb`)
-    task.onSuccess = this.completeLoad.bind(this)
+    task.onSuccess = this.completeLoadTo(grid).bind(this)
     // TODO: handle errors
     // TODO: handle progress
     // TODO: how to know when all loaded
     return task
   }
 
-  completeLoad (task: MeshAssetTask): void {
-    task.loadedMeshes[1].material = this.constructMaterial(task.loadedMeshes[1]._scene)
-    const e = new EntityDisplay(task.loadedMeshes[0], this.cards)
-    e.mesh.scaling.scaleInPlace(0.03)
-    // TODO: store somewhere
+  completeLoadTo (grid: BeyondGrid): (task: MeshAssetTask) => void {
+    return (task: MeshAssetTask) => {
+      task.loadedMeshes[1].material = this.constructMaterial(task.loadedMeshes[1]._scene)
+      const e = new EntityDisplay(task.loadedMeshes[0], this.cards)
+      e.mesh.scaling.scaleInPlace(0.03)
+      if (this.pos !== undefined) {
+        grid.add(new HexModel(), e, this.pos)
+        e.mesh.position = grid.toPixel(this.pos)
+      }
+    }
   }
 }
 
-export class EntityDisplay {
-  constructor (public mesh: AbstractMesh, public cards: string[]) { }
+export class EntityDisplay extends HexDisplay {
+  constructor (public mesh: AbstractMesh, public cards: string[]) { super() }
   pos?: OffsetCoord = undefined
 
   position (np?: OffsetCoord): void { this.pos = np; this.display() }
