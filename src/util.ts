@@ -1,4 +1,4 @@
-import { Vector3, Scene, FreeCamera, Engine, HemisphericLight, type ILoadingScreen } from '@babylonjs/core'
+import { Vector3, Scene, FreeCamera, Engine, HemisphericLight, type ILoadingScreen, Database } from '@babylonjs/core'
 import { basicSkybox } from './kassite/Util'
 
 // https://doc.babylonjs.com/features/featuresDeepDive/scene/customLoadingScreen
@@ -20,6 +20,15 @@ export function createSceneContext (): SceneContext {
   const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement
   const engine = new Engine(canvas, true)
   engine.setHardwareScalingLevel(1 / window.devicePixelRatio)
+  engine.enableOfflineSupport = true
+
+  // https://doc.babylonjs.com/features/featuresDeepDive/scene/optimizeCached
+  // https://forum.babylonjs.com/t/is-babylon-caching-to-indexeddb-works-as-expected/26962/8
+  Database.IDBStorageEnabled = true
+  Engine.OfflineProviderFactory = (urlToScene, callbackManifestChecked, _) => {
+    return new Database(urlToScene, callbackManifestChecked, true)
+  }
+
   window.addEventListener('resize', _ => { engine.resize() })
   window.addEventListener('load', _ => { engine.resize() })
   engine.loadingScreen = new CustomLoadingScreen("I'm loading!!")

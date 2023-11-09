@@ -1,4 +1,4 @@
-import { AssetsManager, type Scene, type MeshAssetTask } from '@babylonjs/core'
+import { AssetsManager } from '@babylonjs/core'
 // import { Inspector } from '@babylonjs/inspector'
 import { setupRtsCamera } from './kassite/RtsCamera'
 import { ControlManager } from './kassite/InputControl'
@@ -26,28 +26,3 @@ setupRtsCamera(ctx.camera, ctrls)
 
 grid.drawOutline(ctx.scene, OffsetCoord.zero)
 // Inspector.Show(ctx.scene, {})
-
-export class Loader {
-  private readonly mgr: AssetsManager
-  private readonly loaded = new Map<string, MeshAssetTask>()
-  constructor (scene: Scene) {
-    this.mgr = new AssetsManager(scene)
-  }
-
-  // TODO: handle multiple meshNames
-  loadMesh (meshName: string, rootUrl: string, sceneFilename: string, onSuccess: (task: MeshAssetTask) => void): void {
-    const key = `${rootUrl}${sceneFilename}@${meshName}`
-    const prev = this.loaded.get(key) as MeshAssetTask
-    if (prev !== undefined) {
-      if (prev.isCompleted) {
-        onSuccess(prev)
-      } else {
-        prev.onSuccess = (t) => { onSuccess(t); prev.onSuccess(t) }
-      }
-    } else {
-      const task = this.mgr.addMeshTask(meshName, meshName, rootUrl, sceneFilename)
-      this.loaded.set(key, task)
-      task.onSuccess = onSuccess
-    }
-  }
-}
