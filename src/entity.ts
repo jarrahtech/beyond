@@ -1,4 +1,4 @@
-import { type AbstractMesh, StandardMaterial, Texture, type Scene, type Material, type AssetsManager, type MeshAssetTask, type AbstractAssetTask } from '@babylonjs/core'
+import { type AbstractMesh, type AssetsManager, type MeshAssetTask, type Nullable } from '@babylonjs/core'
 import { type OffsetCoord } from './hex/Coords'
 import { type BeyondGrid, HexDisplay, HexModel } from './grid'
 
@@ -6,47 +6,54 @@ import '@babylonjs/loaders/glTF'
 
 export class ScenarioDef {
   constructor (public entities: EntityDef[]) {}
-  loadTo (grid: BeyondGrid, mgr: AssetsManager): AbstractAssetTask[] {
-    // TODO: combine duplicates
-    const result: AbstractAssetTask[] = []
-    this.entities.forEach((e) => result.push(e.loadTo(grid, mgr)))
-    return result
+  loadTo (grid: BeyondGrid, mgr: AssetsManager): void {
+    const wait = new Map<string, EntityDef[] | null>()
+    this.entities.forEach((e) => { e.loadCached(grid, mgr, wait) })
   }
 }
 
 export class EntityDef {
-  private readonly folder: string
-  constructor (public entity: string, public colour: string, public cards: string[], public pos?: OffsetCoord) {
-    this.folder = `${import.meta.env.BASE_URL.trim()}entity/${this.entity}/`
+  static readonly folder = `${import.meta.env.BASE_URL.trim()}entity/`
+  constructor (public entity: string, public cards: string[], public pos?: OffsetCoord) {
   }
 
-  constructMaterial (scene: Scene): Material {
-    const mat = new StandardMaterial('mat', scene)
-    const textureFolder = `${this.folder}/${this.entity}`
-    mat.specularPower = 200
-    // TODO: load this async too?
-    // mat.ambientTexture = new Texture(`${textureFolder}AO.png`, scene, undefined, false)
-    mat.diffuseTexture = new Texture(`${textureFolder}${this.colour}AlbedoAO.png`, scene, undefined, false)
-    // mat.specularTexture = new Texture(`${textureFolder}PBRSpecular.png`, scene, undefined, false)
-    // mat.emissiveTexture = new Texture(`${textureFolder}Illumination.png`, scene, undefined, false)
-    // mat.bumpTexture = new Texture(`${textureFolder}Normal.png`, scene, undefined, false)
-    return mat
-  }
-
-  loadTo (grid: BeyondGrid, mgr: AssetsManager): MeshAssetTask {
-    const task = mgr.addMeshTask(this.entity, `${this.entity}.1`, this.folder, `${this.entity}Hull.glb`)
-    task.onSuccess = this.completeLoadTo(grid).bind(this)
+  loadCached (grid: BeyondGrid, mgr: AssetsManager, wait: Map<string, EntityDef[] | null>): void {
+    const waiting = wait.get(this.entity)
+    switch (waiting) {
+      case undefined: // this is the first
+        wait.set(this.entity, [])
+        this.forceLoad(grid, mgr, wait)
+        break
+      case null: // sucessfully loaded, so just get it from browser cache
+        this.forceLoad(grid, mgr, wait)
+        break
+      default: // ongoing or error, so chain onto the first one
+        waiting.push(this)
+    }
     // TODO: handle errors
     // TODO: handle progress
     // TODO: how to know when all loaded
+  }
+
+  forceLoad (grid: BeyondGrid, mgr: AssetsManager, wait: Map<string, EntityDef[] | null>): MeshAssetTask {
+    const task = mgr.addMeshTask(this.entity, `${this.entity}.1`, EntityDef.folder, `${this.entity}.glb`)
+    task.onSuccess = this.completeLoadTo(grid, wait).bind(this)
+    task.onError = (_, m, e) => { console.log(`Err: ${e}: ${m}`) }
     return task
   }
 
-  completeLoadTo (grid: BeyondGrid): (task: MeshAssetTask) => void {
+  private completeLoadTo (grid: BeyondGrid, wait: Map<string, EntityDef[] | null>): (task: MeshAssetTask) => void {
     return (task: MeshAssetTask) => {
-      task.loadedMeshes[1].material = this.constructMaterial(task.loadedMeshes[1]._scene)
-      const e = new EntityDisplay(task.loadedMeshes[0], this.cards)
-      e.mesh.scaling.scaleInPlace(0.03)
+      const mesh = task.loadedMeshes[0]
+      wait.get(this.entity)?.forEach((w) => { w.initialise(grid, mesh.clone(w.entity, null)) })
+      wait.set(this.entity, null)
+      this.initialise(grid, mesh)
+    }
+  }
+
+  initialise (grid: BeyondGrid, mesh: Nullable<AbstractMesh>): void {
+    if (mesh != null) {
+      const e = new EntityDisplay(mesh, this.cards)
       if (this.pos !== undefined) {
         grid.add(new HexModel(), e, this.pos)
         e.mesh.position = grid.toPixel(this.pos)

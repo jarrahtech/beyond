@@ -7,18 +7,19 @@ import { BeyondGrid } from './grid'
 import { OffsetCoord } from './hex/Coords'
 import { ScenarioDef, EntityDef } from './entity'
 
-const scenario = new ScenarioDef([
-  new EntityDef('HeavyDestroyer', 'Blue', ['Engine', 'Pilot'], new OffsetCoord(3, 3)),
-  new EntityDef('HeavyDestroyer', 'Red', ['Widget']),
-  new EntityDef('HeavyDestroyer', 'Blue', [])
-])
-
 const ctx = createSceneContext()
 
+const scenarioDef = new ScenarioDef([
+  new EntityDef('HeavyDestroyer', ['Engine', 'Pilot'], new OffsetCoord(3, 3)),
+  new EntityDef('HeavyDestroyer', ['Widget']),
+  new EntityDef('HeavyDestroyer', [])
+])
 const grid = BeyondGrid.empty(0.75)
 const loader = new AssetsManager(ctx.scene)
-scenario.loadTo(grid, loader)
-loader.loadAsync().then(_ => { ctx.engine.runRenderLoop(() => { ctx.scene.render() }) }, (r) => { console.log(`Load error: ${r}`) })
+scenarioDef.loadTo(grid, loader)
+loader.onTaskError = (t) => { console.log(`Err: ${t.errorObject.exception}: ${t.errorObject.message}`) }
+loader.loadAsync()
+  .then(_ => { ctx.engine.runRenderLoop(() => { ctx.scene.render() }) }, (r) => { console.log(`Load error: ${JSON.stringify(r)}`) })
 
 const ctrls = new ControlManager() // TODO: split -> util?
 ctrls.attach(ctx.scene)

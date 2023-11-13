@@ -35,7 +35,7 @@ export function createSceneContext (): SceneContext {
 
   const scene = new Scene(engine)
   scene.useRightHandedSystem = true // to match Blender
-  const camera = new FreeCamera('camera1', new Vector3(0, 10, 4), scene)
+  const camera = new FreeCamera('camera1', new Vector3(0, 5, 4), scene)
   camera.setTarget(Vector3.Zero())
   camera.speed = 0.2
   camera.fov = 1.0
